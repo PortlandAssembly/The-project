@@ -1,4 +1,5 @@
 Peer Production License
+-----------------------
 
 Created by John Magyar, B.A., J.D. and Dmytri Kleiner, the following Peer
 Production License, a model for a Copyfarleft license, has been derived from
@@ -180,9 +181,9 @@ copyrighted works.
 
 c. **You may exercise the rights granted in Section 3 for commercial
 purposes only if**:
-	i. **You are a worker-owned business or worker-owned collective; and**
-	ii. **all financial gain, surplus, profits and benefits produced by the
-business or collective are distributed among the worker-owners**
+    i. **You are a worker-owned business or worker-owned collective; and**
+    ii. **all financial gain, surplus, profits and benefits produced by the
+    business or collective are distributed among the worker-owners**
 
 d. Any use by a business that is privately owned and managed, and that
 seeks to generate profit from the labor of employees paid by salary or
