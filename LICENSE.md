@@ -90,7 +90,8 @@ License who has not previously violated the terms of this License with
 respect to the Work, or who has received express permission from the
 Licensor to exercise rights under this License despite a previous
 violation.
-h\. **“Publicly Perform”** means to perform public recitations of the
+
+h. **“Publicly Perform”** means to perform public recitations of the
 Work and to communicate to the public those public recitations, by any
 means or process, including by wire or wireless means or public digital
 performances; to make available to the public Works in such a way that
@@ -98,12 +99,12 @@ members of the public may access these Works from a place and at a place
 individually chosen by them; to perform the Work to the public by any
 means or process and the communication to the public of the performances
 of the Work, including by public digital performance; to broadcast and
-rebroadcast the Work by any means including signs, sounds or images.
-	i. **“Reproduce”** means to make copies of the Work by any means
-including without limitation by sound or visual recordings and the right
-of fixation and reproducing fixations of the Work, including storage of
-a protected performance or phonogram in digital form or other electronic
-medium.
+rebroadcast the Work by any means including signs, sounds or images.  
+
+i.  **“Reproduce”** means to make copies of the Work by any means including
+without limitation by sound or visual recordings and the right of fixation and
+reproducing fixations of the Work, including storage of a protected performance
+or phonogram in digital form or other electronic medium.
 
 ### 2. FAIR DEALING RIGHTS
 
