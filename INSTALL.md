@@ -1,6 +1,7 @@
-# React-Redux-Flask #
+# Installing The Project for local development
 
-Boilerplate application for a Flask JWT Backend and a React/Redux Front-End with Material UI.
+This application is based on a boilerplate application for a Flask JWT Backend
+and a React/Redux Front-End with Material UI.
 
 * Python 2.7+ or 3.x
 * Pytest
@@ -14,7 +15,7 @@ Boilerplate application for a Flask JWT Backend and a React/Redux Front-End with
 * SCSS processing
 * Webpack
 
-![screenshot](http://i.imgur.com/ZIS4qkw.png)
+## Steps for local development
 
 ### Create DB
 ```sh
@@ -132,8 +133,32 @@ $ npm start
 ```
 
 6. open your browser to http://localhost:3000/register and setup your first account
-7. enjoy! By this point, you should be able to create an account and login without errors. 
 
+7. Install and run ngrok
 
+Most Twilio services use webhooks to communicate with your application. When
+Twilio receives an incoming phone call, for example, it reaches out to a URL in
+your application for instructions on how to handle the call.
 
+When you’re working on your Flask application in your development environment,
+your app is only reachable by other programs on the same computer, so Twilio
+won’t be able to talk to it.
+
+Ngrok is our favorite tool for solving this problem. Once started, it provides
+a unique URL on the ngrok.io domain which will forward incoming requests to
+your local development environment.
+
+To start, head over to the Ngrok download page and grab the binary for your
+operating system: https://ngrok.com/download
+
+Once downloaded, make sure your Flask application is running and then start
+Ngrok using this command: 
+
+```sh 
+$ ./ngrok http 5000
+```
+
+You should see output similar to this:
+
+![ngrok output](https://s3.amazonaws.com/com.twilio.prod.twilio-docs/images/ngrok.width-800.png)
 
