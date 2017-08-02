@@ -42,7 +42,7 @@ Harassment includes:
 - Gratuitous or off-topic sexual images or behaviour  in spaces where they’re
   not appropriate.
 - Physical contact and simulated physical contact (eg, textual descriptions
-  like “*hug*” or “*backrub*”) without consent or after a request to stop.
+  like “\*hug\*” or “\*backrub\*”) without consent or after a request to stop.
 - Threats of violence.
 - Incitement of violence towards any individual, including encouraging a person
   to commit suicide or to engage in self-harm.
