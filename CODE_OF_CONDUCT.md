@@ -78,7 +78,7 @@ is being harassed, or have any other concerns, please contact any member of the
 Community Team at the following addreses:
 
 * Sascha <__________@_______>
-* Brennan <___________@______>
+* Brennan <project.report@teh-void.net>
 * Than <goldenapplesdesign@gmail.com>
 
 If the person who is harassing you is on the team, they will recuse themselves
