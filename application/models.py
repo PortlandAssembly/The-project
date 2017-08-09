@@ -18,11 +18,19 @@ class User(db.Model):
     id       = db.Column(db.Integer(), primary_key = True)
     email    = db.Column(db.String(255), unique    = True)
     password = db.Column(db.String(255))
+    phone    = db.Column(db.String(15))
 
-    def __init__(self, email, password):
+    def __init__(self, email, password, phone):
         self.email = email
         self.active = True
-        self.password = User.hashed_password(password)
+        self.password = User.hashed_password(password) if password else None
+        self.phone = phone
+
+    def as_dict(self):
+        return {
+            'id':    self.id,
+            'phone': self.phone
+        }
 
     @staticmethod
     def hashed_password(password):
@@ -36,6 +44,15 @@ class User(db.Model):
         else:
             return None
 
+    @staticmethod
+    def from_number(lookup_number):
+        user = User.query.filter_by(phone=lookup_number).first()
+        if not user:
+            user = User(None, None, lookup_number)
+            db.session.add(user)
+            db.session.commit()
+        return user
+
 class Message(db.Model):
     __tablename__ = "message"
     id            = db.Column(db.Integer(), primary_key = True)
@@ -45,19 +62,29 @@ class Message(db.Model):
     timestamp     = db.Column(db.Integer())
     parent        = db.Column(db.Integer,ForeignKey('message.id'))
 
-#    responses    = relationship('Message',
-#                        backref=backref('parent', remote_side=[id])
-#                    )
-
-    def __init__(self, event, text, author, timestamp, parent):
-        self.event = event
+    def __init__(self, text, author, timestamp, parent, event):
         self.text = text
         self.author = author
         self.timestamp = timestamp
         self.parent = parent
+        self.event = event
+
+    def as_dict(self): 
+        return {
+            'id':        self.id,
+            'text':      self.text,
+            'author':    self.author,
+            'timestamp': self.timestamp,
+            'parent':    self.parent,
+            'event':     self.event,
+        }
 
     def get_responses():
         return User.query.filter_by(parent=self.id)
+
+    @staticmethod
+    def get_new():
+        return Message.query.all()
 
     @staticmethod
     def get_for_event(event):

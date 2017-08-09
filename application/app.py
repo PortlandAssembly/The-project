@@ -1,8 +1,11 @@
 from flask import request, render_template, jsonify, url_for, redirect, g
-from .models import User
+from .models import User, Message
 from index import app, db
 from sqlalchemy.exc import IntegrityError
 from .utils.auth import generate_token, requires_auth, verify_token
+from twilio.rest import Client
+from twilio.twiml.messaging_response import MessagingResponse
+import time, json;
 
 
 @app.route('/', methods=['GET'])
@@ -26,7 +29,8 @@ def create_user():
     incoming = request.get_json()
     user = User(
         email=incoming["email"],
-        password=incoming["password"]
+        password=incoming["password"],
+        phone=None
     )
     db.session.add(user)
 
@@ -62,3 +66,26 @@ def is_token_valid():
         return jsonify(token_is_valid=True)
     else:
         return jsonify(token_is_valid=False), 403
+
+@app.route("/api/messages", methods=['GET'])
+def get_messages():
+    messages = Message.query.order_by(Message.timestamp)
+    if messages:
+        return jsonify([message.as_dict() for message in messages])
+    else:
+        return jsonify({ error: 'No Messages yet' })
+
+@app.route("/api/message", methods=['POST'])
+def incoming_message():
+    from_number = request.values.get('From', None)
+    body = request.values.get('Body', None)
+    timestamp = int(time.time())
+    user = User.from_number(from_number)
+
+    message = Message(body, user.id, timestamp, 0, 0)
+    db.session.add(message)
+    db.session.commit()
+
+    r = MessagingResponse()
+    r.message('Thanks for the tip.')
+    return str(r)
