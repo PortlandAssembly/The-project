@@ -23,13 +23,6 @@ auth_token = input_with_default('Twilio Auth Token', 'TWILIO_AUTH_TOKEN')
 host_name = input_with_default('Publicly accessible URL (ngrok tunnel, for example)', 'TWILIO_HOST_NAME')
 database_url = input_with_default('Database to use', 'DATABASE_URL')
 
-### LOCAL FOR DEBUGGING
-#twilio_number = '+15036766408'
-#account_sid = 'ACb227808447a91e78137f0ce02ccb26c3'
-#auth_token = 'f71096e8247d6b94e718e6ae8f18b404'
-#host_name = 'http://example.org'
-#database_url = 'sqlite:///your.db'
-
 print "Writing configuration to file..."
 
 print """\n\n
