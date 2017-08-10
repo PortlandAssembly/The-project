@@ -17,23 +17,66 @@ and a React/Redux Front-End with Material UI.
 
 ## Steps for local development
 
-### Create DB
+1. Create DB
+
+The easiest database to use for local development is a sqlite instance. As long
+as you have sqlite available in your $PATH, there's no need to prepare the
+database.
+
+2. Start a local tunnel to the public internet
+
+In order to receive the webhooks Twilio will post to the application, your
+application needs to have a publicly accessible URL. If you're developing
+on a laptop or other device without a web server, the easiest way to do
+this is by running `ngrok`.  Once started, it provides a unique URL on the
+ngrok.io domain which will forward incoming requests to your local
+development environment.
+
+To start, head over to the Ngrok download page and grab the binary for your
+operating system: https://ngrok.com/download
+
+Once downloaded, start Ngrok using this command: 
+
 ```sh
-$ export DATABASE_URL="postgresql://username:password@localhost/mydatabase"
+$ ./ngrok http 5000
 
-or
-
-$ export DATABASE_URL="mysql+mysqlconnector://username:password@localhost/mydatabase"
-
-or
-
-$ export DATABASE_URL="sqlite:///your.db"
 ```
-(More about connection strings in this [flask config guide](http://flask-sqlalchemy.pocoo.org/2.1/config/).)
+
+and copy the forwarding url, which will look like http://afe9fd80.ngrok.io.
+
+3. Set up environment variables
+
+(This step assumes that you've already created a Twilio account and provisioned
+a phone number with the capabilities (SMS, MMS, voice) you wish to use. If you
+haven't gone through those steps, you can [sign up for a free trial
+account](https://www.twilio.com/try-twilio). The configuration you will needcan
+be found in the [Twilio Account Dashboard](https://www.twilio.com/user/account).
+
+Start by running the configuration script:
+
+```sh
+$ python configure.py
 ```
+
+This will prompt you for all the variables needed to run the application,
+and make some configuration changes to your Twilio number so that the
+webhooks go through the ngrok tunnel you've started. It will also output
+a series of export statements which you can copy and paste into your shell
+startup script for simpler startup in the future.
+
+(Because the ngrok subdomain will change each time you runb ngrok, you
+will have to do this step each time you start the application. However, if
+the environment variables are set in your shell, you won't have to
+re-enter them each time.)
+
+4. Initialize the application database
+
+The following commands will create the application database tables and run
+any migrations necessary:
+
+```sh
 $ python manage.py create_db
 $ python manage.py db upgrade
-$ python manage.py db migrate
 ```
 
 To update database after creating new migrations, use:
@@ -42,123 +85,40 @@ To update database after creating new migrations, use:
 $ python manage.py db upgrade
 ```
 
-### Install Front-End Requirements
-```sh
-$ cd static
-$ npm install
-```
-
-### Run Back-End
+5. Run the back-end server
 
 ```sh
-$ python manage.py runserver
-```
-
-### Test Back-End
-
-```sh
-$ python test.py --cov-report=term --cov-report=html --cov=application/ tests/
-```
-
-### Run Front-End
-
-```sh
-$ cd static
-$ npm start
-```
-
-### Build Front-End
-
-```sh
-$ npm run build:production
-```
-
-### New to Python?
-
-If you are approaching this demo as primarily a frontend dev with limited or no python experience, you may need to install a few things that a seasoned python dev would already have installed.
-
-Most Macs already have python 2.7 installed but you may not have pip install. You can check to see if you have them installed:
-
-```
-$ python --version
-$ pip --version 
-```
-
-If pip is not installed, you can follow this simple article to [get both homebrew and python](https://howchoo.com/g/mze4ntbknjk/install-pip-on-mac-os-x)
-
-After you install python, you can optionally also install python 3
-
-```
-$ brew install python3
-```
-
-Now you can check again to see if both python and pip are installed. Once pip is installed, you can download the required flask modules:
-
-```
-$ sudo pip install flask flask_script flask_migrate flask_bcrypt 
-```
-
-Now, you can decide on which database you wish to use. 
-
-#### New to MySQL? 
-
-If you decide on MySQL, install the free community edition of [MySQL](https://dev.mysql.com/downloads/mysql/) and [MySQL Workbench](https://www.mysql.com/products/workbench/)
-
-1. start MySQL from the System Preferences
-2. open MySQL Workbench and [create a database](http://stackoverflow.com/questions/5515745/create-a-new-database-with-mysql-workbench) called mydatabase but don't create the tables since python will do that for you
-3. Install the MySQL connector for Python, add the DATABASE_URL configuration, and create the database and tables
-
-```
-$ sudo pip install mysql-connector-python-rf
-$ export DATABASE_URL="mysql+mysqlconnector://username:password@localhost/mydatabase"
-$ python manage.py create_db
-```
-
-Note: you do not need to run "python manage.py db upgrade" or "python manage.py db migrate" if its your first go at it
-
-4. Run Back-End
-
-```
 $ python manage.py runserver
 ```
 
 If all goes well, you should see ```* Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)``` followed by a few more lines in the terminal.
 
-5. open a new tab to the same directory and run the front end
+Back-end tests can be run with this command:
 
+```sh
+$ python test.py --cov-report=term --cov-report=html --cov=application/ tests/
 ```
+
+6. Run the front-end server
+
+First, install all the npm modules required to build and run the front-end app: open a new shell tab to the same directory and run the front end.
+
+```sh
 $ cd static
 $ npm install
+```
+
+Once those are installed, you can run the development server (including hot-reloading) with:
+
+```sh
 $ npm start
 ```
 
-6. open your browser to http://localhost:3000/register and setup your first account
+To build the app for production, run:
 
-7. Install and run ngrok
-
-Most Twilio services use webhooks to communicate with your application. When
-Twilio receives an incoming phone call, for example, it reaches out to a URL in
-your application for instructions on how to handle the call.
-
-When you’re working on your Flask application in your development environment,
-your app is only reachable by other programs on the same computer, so Twilio
-won’t be able to talk to it.
-
-Ngrok is our favorite tool for solving this problem. Once started, it provides
-a unique URL on the ngrok.io domain which will forward incoming requests to
-your local development environment.
-
-To start, head over to the Ngrok download page and grab the binary for your
-operating system: https://ngrok.com/download
-
-Once downloaded, make sure your Flask application is running and then start
-Ngrok using this command: 
-
-```sh 
-$ ./ngrok http 5000
+```sh
+$ npm run build:production
 ```
 
-You should see output similar to this:
-
-![ngrok output](https://s3.amazonaws.com/com.twilio.prod.twilio-docs/images/ngrok.width-800.png)
+7. open your browser to http://localhost:3000/register and setup your first account
 
