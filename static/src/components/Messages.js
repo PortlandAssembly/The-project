@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import { List, ListItem } from 'material-ui/List';
 import Divider from 'material-ui/Divider';
 import * as actionCreators from '../actions/messages';
+import * as moment from 'moment';
 
 function mapStateToProps(state) {
     return {
@@ -30,15 +31,18 @@ class Messages extends React.Component { // eslint-disable-line react/prefer-sta
                 <h1>{ messages.length } New Messages</h1>
                 <Divider inset={false} />
                 <List> 
-                    { messages.map( message => 
-                       <ListItem key={ message.id }
-                            primaryText={message.text}
-                            secondaryText={
-                                <p>
-                                    Sent on { message.timestamp } 
-                                    by user { message.author }
-                                </p>
-                            } />
+                    { messages.map( message => {
+                        let message_time = moment.unix( message.timestamp )
+                        return (
+                           <ListItem key={ message.id }
+                                primaryText={message.text}
+                                secondaryText={
+                                    <p>
+                                        { message_time.fromNow() } 
+                                        <span style={{ float: 'right' }}>from { message.author }</span>
+                                    </p>
+                                } />
+                        ) }
                      ) }
                 </List>
                 <hr />

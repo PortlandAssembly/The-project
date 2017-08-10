@@ -23,6 +23,14 @@ def any_root_path(path):
 def get_user():
     return jsonify(result=g.current_user)
 
+@app.route("/api/users", methods=["GET"])
+def get_users():
+    users = User.query.all()
+    if users:
+        return jsonify([user.as_dict() for user in users])
+    else:
+        return jsonify({ error: 'No Users found' })
+
 
 @app.route("/api/create_user", methods=["POST"])
 def create_user():

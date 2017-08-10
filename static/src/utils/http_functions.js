@@ -46,3 +46,7 @@ export function data_about_user(token) {
 export function get_new_messages(token) {
     return axios.get('api/messages', tokenConfig(token));
 }
+
+export function get_all_users(token) {
+    return axios.get('api/users', tokenConfig(token));
+}
