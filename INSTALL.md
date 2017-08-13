@@ -44,13 +44,22 @@ $ ./ngrok http 5000
 
 and copy the forwarding url, which will look like http://afe9fd80.ngrok.io.
 
-3. Set up environment variables
+3. Get Python dependancies
+
+```sh
+$ pip install -r requirements.txt
+```
+
+4. Set up environment variables
 
 (This step assumes that you've already created a Twilio account and provisioned
 a phone number with the capabilities (SMS, MMS, voice) you wish to use. If you
 haven't gone through those steps, you can [sign up for a free trial
 account](https://www.twilio.com/try-twilio). The configuration you will needcan
 be found in the [Twilio Account Dashboard](https://www.twilio.com/user/account).
+
+For a local sqlite database, use:
+sqlite:///<file_name>
 
 Start by running the configuration script:
 
@@ -69,14 +78,13 @@ will have to do this step each time you start the application. However, if
 the environment variables are set in your shell, you won't have to
 re-enter them each time.)
 
-4. Initialize the application database
+5. Initialize the application database
 
 The following commands will create the application database tables and run
 any migrations necessary:
 
 ```sh
 $ python manage.py create_db
-$ python manage.py db upgrade
 ```
 
 To update database after creating new migrations, use:
@@ -85,7 +93,7 @@ To update database after creating new migrations, use:
 $ python manage.py db upgrade
 ```
 
-5. Run the back-end server
+6. Run the back-end server
 
 ```sh
 $ python manage.py runserver
@@ -99,7 +107,7 @@ Back-end tests can be run with this command:
 $ python test.py --cov-report=term --cov-report=html --cov=application/ tests/
 ```
 
-6. Run the front-end server
+7. Run the front-end server
 
 First, install all the npm modules required to build and run the front-end app: open a new shell tab to the same directory and run the front end.
 
@@ -120,5 +128,5 @@ To build the app for production, run:
 $ npm run build:production
 ```
 
-7. open your browser to http://localhost:3000/register and setup your first account
+8. open your browser to http://localhost:3000/register and setup your first account
 
