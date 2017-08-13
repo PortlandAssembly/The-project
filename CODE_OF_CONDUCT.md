@@ -77,7 +77,7 @@ If you are being harassed by a member of The Project, notice that someone else
 is being harassed, or have any other concerns, please contact any member of the
 Community Team at the following addreses:
 
-* Sascha <__________@_______>
+* Sascha <sascha@siekmann.com>
 * Brennan <project.report@teh-void.net>
 * Than <goldenapplesdesign@gmail.com>
 
