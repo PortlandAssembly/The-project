@@ -1,6 +1,5 @@
 from twilio.rest import Client
 from flask_script import Manager, Server
-from application.app import app
 import os
 
 print
