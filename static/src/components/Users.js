@@ -1,6 +1,7 @@
 import React from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
+import { browserHistory, Link } from 'react-router';
 import { List, ListItem } from 'material-ui/List';
 import Divider from 'material-ui/Divider';
 import * as actionCreators from '../actions/users';
@@ -11,7 +12,6 @@ function mapStateToProps(state) {
         isFetching: state.users.isFetching,
         loaded: state.users.loaded,
         users: state.users.users,
-        users: state.users.users
     };
 }
 
@@ -25,6 +25,7 @@ class Users extends React.Component { // eslint-disable-line react/prefer-statel
         const { dispatch, fetchUsers } = this.props;
         fetchUsers();
     }
+
     render() {
         const { isFetching, loaded, users } = this.props;
         return (
@@ -35,7 +36,15 @@ class Users extends React.Component { // eslint-disable-line react/prefer-statel
                     { users.map( user => {
                         return (
                            <ListItem key={ user.id }
-                                primaryText={user.phone}
+                                primaryText={ (
+                                    <Link to={`/users/${user.id}`}>{ user.name || user.phone || user.email }</Link>
+                                ) }
+                                secondaryText={
+                                    <p>
+                                        <span style={{ float: 'left' }}>{user.phone}</span>
+                                        <span style={{ float: 'right' }}>{user.email}</span>
+                                    </p>
+                                }
                                 />
                         ) }
                      ) }

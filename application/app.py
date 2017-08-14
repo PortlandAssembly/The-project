@@ -54,6 +54,12 @@ def create_user():
         token=generate_token(new_user)
     )
 
+@app.route("/api/user/<int:user_id>", methods=["POST"])
+def update_user( user_id ):
+    user = db.session.query(User).get(user_id)
+    incoming = request.get_json()
+    user = user.update(values=incoming["user"])
+    return get_users() if user else jsonify({"error": "Error updating user record"})
 
 @app.route("/api/get_token", methods=["POST"])
 def get_token():

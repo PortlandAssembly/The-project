@@ -1,4 +1,6 @@
+from flask import jsonify
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import scoped_session,sessionmaker,relationship
 from sqlalchemy import (
     Column,
@@ -16,11 +18,14 @@ from index import db, bcrypt
 class User(db.Model):
     __tablename__ = "user"
     id       = db.Column(db.Integer(), primary_key = True)
+    name     = db.Column(db.String(255))
     email    = db.Column(db.String(255), unique    = True)
     password = db.Column(db.String(255))
     phone    = db.Column(db.String(15))
 
-    def __init__(self, email, password, phone):
+
+    def __init__(self, email="", password="", phone="", name=""):
+        self.name = name
         self.email = email
         self.active = True
         self.password = User.hashed_password(password) if password else None
@@ -29,8 +34,23 @@ class User(db.Model):
     def as_dict(self):
         return {
             'id':    self.id,
-            'phone': self.phone
+            'name':  self.name,
+            'phone': self.phone,
+            'email': self.email
         }
+
+    def update(self, values):
+        for key, value in values.iteritems():
+            self.__setattr__(key, value)
+        print jsonify(values)
+        exit
+        
+        try:
+            db.session.add(self)
+            db.session.commit()
+            return self
+        except IntegrityError:
+            return None
 
     @staticmethod
     def hashed_password(password):
@@ -45,6 +65,10 @@ class User(db.Model):
             return None
 
     @staticmethod
+    def get_all():
+        return db.session.query(User, UserTags, Tag).join(Usertags).join(Tag)
+
+    @staticmethod
     def from_number(lookup_number):
         user = User.query.filter_by(phone=lookup_number).first()
         if not user:
@@ -52,6 +76,18 @@ class User(db.Model):
             db.session.add(user)
             db.session.commit()
         return user
+
+class UserTags(db.Model):
+    __tablename__ = "user_tag"
+    id       = db.Column(db.Integer(), primary_key = True)
+    user_id  = db.Column(db.Integer(), ForeignKey('user.id'))
+    tag_id   = db.Column(db.Integer(), ForeignKey('tag.id'))
+
+class Tag(db.Model):
+    __tablename__ = 'tag'
+    id       = db.Column(db.Integer(), primary_key = True)
+    tag_type = db.Column(db.String(255))
+    tag_name = db.Column(db.String(255))
 
 class Message(db.Model):
     __tablename__ = "message"

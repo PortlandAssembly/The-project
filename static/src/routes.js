@@ -11,6 +11,7 @@ import RegisterView from './components/RegisterView';
 import ProtectedView from './components/ProtectedView';
 import Messages from './components/Messages';
 import Users from './components/Users';
+import UserProfile from './components/UserProfile';
 import NotFound from './components/NotFound';
 
 import { DetermineAuth } from './components/DetermineAuth';
@@ -25,6 +26,7 @@ export default (
         <Route path="home" component={requireNoAuthentication(HomeContainer)} />
         <Route path="messages" component={requireAuthentication(Messages)} />
         <Route path="users" component={requireAuthentication(Users)} />
+        <Route path="users/:userId" component={requireAuthentication(UserProfile)} />
         <Route path="*" component={DetermineAuth(NotFound)} />
     </Route>
 );

@@ -22,31 +22,38 @@ export function get_github_access() {
 }
 
 export function create_user(email, password) {
-    return axios.post('api/create_user', {
+    return axios.post('/api/create_user', {
         email,
         password,
     });
 }
 
 export function get_token(email, password) {
-    return axios.post('api/get_token', {
+    return axios.post('/api/get_token', {
         email,
         password,
     });
 }
 
 export function has_github_token(token) {
-    return axios.get('api/has_github_token', tokenConfig(token));
+    return axios.get('/api/has_github_token', tokenConfig(token));
 }
 
 export function data_about_user(token) {
-    return axios.get('api/user', tokenConfig(token));
+    return axios.get('/api/user', tokenConfig(token));
 }
 
 export function get_new_messages(token) {
-    return axios.get('api/messages', tokenConfig(token));
+    return axios.get('/api/messages', tokenConfig(token));
 }
 
 export function get_all_users(token) {
-    return axios.get('api/users', tokenConfig(token));
+    return axios.get('/api/users', tokenConfig(token));
+}
+
+export function update_user(user, token) {
+    let { id } = user;
+    return axios.post(`/api/user/${id ? id : 'new'}`, {
+        user
+    });
 }
