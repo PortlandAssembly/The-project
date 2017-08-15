@@ -26,12 +26,12 @@ def maybe_default(config_val):
 
 def input_with_default(prompt, config_val, regex_check, errorstring, default=''):
     os_config = os.environ[config_val] if config_val in os.environ else ''
-    prompted = raw_input(prompt + maybe_default(os_config or default) + ': ')
+    prompted = raw_input(prompt + maybe_default(os_config or default) + ': ').strip()
     value = prompted or os_config or default
     if ('match' in dir(regex_check)) and (callable(getattr(regex_check, 'match'))):
         while (regex_check.match(value) == None):
             print errorstring + ": %s" % value
-            value = raw_input(prompt + maybe_default(os_config or default) + ': ')
+            value = raw_input(prompt + maybe_default(os_config or default) + ': ').strip()
     return value
 
 twilio_number = input_with_default('Twilio Phone Number (format: +12345678900)', 'TWILIO_NUMBER', numbervalid, 'Invalid number format')
