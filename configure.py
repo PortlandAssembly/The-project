@@ -1,6 +1,16 @@
 from twilio.rest import Client
 from flask_script import Manager, Server
+import readline
 import os
+import re
+
+urlvalid = re.compile(
+        r'^(?:http|ftp)s?://' # http:// or https://
+        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...
+        r'localhost|' #localhost...
+        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
+        r'(?::\d+)?' # optional port
+        r'(?:/?|[/?]\S+)$', re.IGNORECASE)
 
 print
 print
@@ -11,16 +21,24 @@ print
 def maybe_default(config_val):
     return ' [' + config_val + ']' if config_val else '';
 
-def input_with_default( prompt, config_val ):
+def input_with_default(prompt, config_val, default=''):
     os_config = os.environ[config_val] if config_val in os.environ else ''
-    prompted = raw_input( prompt + maybe_default(os_config) + ': ' )
+    prompted = raw_input(prompt + maybe_default(os_config or default) + ': ')
     return prompted or os_config
 
-twilio_number = input_with_default('Twilio Phone Number', 'TWILIO_NUMBER')
+twilio_number = input_with_default('Twilio Phone Number (format: +1234567890)', 'TWILIO_NUMBER')
+while (re.match(r"\+\d{10}$", twilio_number) == None):
+    print "Invalid number format"
+    twilio_number = input_with_default('Twilio Phone Number (format: +1234567890)', 'TWILIO_NUMBER')
+ 
 account_sid = input_with_default('Twilio Account Sid', 'TWILIO_ACCOUNT_SID')
 auth_token = input_with_default('Twilio Auth Token', 'TWILIO_AUTH_TOKEN')
 host_name = input_with_default('Publicly accessible URL (ngrok tunnel, for example)', 'TWILIO_HOST_NAME')
-database_url = input_with_default('Database to use', 'DATABASE_URL')
+while (urlvalid.match(host_name) == None):
+    print "Invalid url format"
+    host_name = input_with_default('Publicly accessible URL (ngrok tunnel, for example)', 'TWILIO_HOST_NAME')
+
+database_url = input_with_default('Database to use', 'DATABASE_URL', 'sqlite:///default.db')
 
 print "Writing configuration to file..."
 
