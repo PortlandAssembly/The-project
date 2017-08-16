@@ -1,6 +1,19 @@
 from twilio.rest import Client
 from flask_script import Manager, Server
+import readline
 import os
+import re
+
+urlvalid = re.compile(
+        r'^(?:http|ftp)s?://' # http:// or https://
+        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...
+        r'localhost|' #localhost...
+        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
+        r'(?::\d+)?' # optional port
+        r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+numbervalid = re.compile(r'^\+(\d{5,6}$|\d{11,13}$)')
+sidvalid = re.compile(r'^[0-9a-fA-F]{34}$')
+tokenvalid = re.compile(r'^[0-9a-fA-F]+$')
 
 print
 print
@@ -11,16 +24,21 @@ print
 def maybe_default(config_val):
     return ' [' + config_val + ']' if config_val else '';
 
-def input_with_default( prompt, config_val ):
+def input_with_default(prompt, config_val, regex_check, errorstring, default=''):
     os_config = os.environ[config_val] if config_val in os.environ else ''
-    prompted = raw_input( prompt + maybe_default(os_config) + ': ' )
-    return prompted or os_config
+    prompted = raw_input(prompt + maybe_default(os_config or default) + ': ').strip()
+    value = prompted or os_config or default
+    if ('match' in dir(regex_check)) and (callable(getattr(regex_check, 'match'))):
+        while (regex_check.match(value) == None):
+            print errorstring + ": %s" % value
+            value = raw_input(prompt + maybe_default(os_config or default) + ': ').strip()
+    return value
 
-twilio_number = input_with_default('Twilio Phone Number', 'TWILIO_NUMBER')
-account_sid = input_with_default('Twilio Account Sid', 'TWILIO_ACCOUNT_SID')
-auth_token = input_with_default('Twilio Auth Token', 'TWILIO_AUTH_TOKEN')
-host_name = input_with_default('Publicly accessible URL (ngrok tunnel, for example)', 'TWILIO_HOST_NAME')
-database_url = input_with_default('Database to use', 'DATABASE_URL')
+twilio_number = input_with_default('Twilio Phone Number (format: +12345678900)', 'TWILIO_NUMBER', numbervalid, 'Invalid number format')
+account_sid = input_with_default('Twilio Account Sid', 'TWILIO_ACCOUNT_SID', sidvalid, 'Invalid SID')
+auth_token = input_with_default('Twilio Auth Token', 'TWILIO_AUTH_TOKEN', tokenvalid, 'Invalid authtoken')
+host_name = input_with_default('Publicly accessible URL (ngrok tunnel, for example)', 'TWILIO_HOST_NAME', urlvalid, 'Invalid url')
+database_url = input_with_default('Database to use', 'DATABASE_URL', None, '', 'sqlite:///default.db')
 
 print "Writing configuration to file..."
 
