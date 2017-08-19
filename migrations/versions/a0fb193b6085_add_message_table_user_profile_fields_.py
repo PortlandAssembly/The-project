@@ -1,14 +1,14 @@
-"""empty message
+"""Add Message table, user profile fields, and User Tags tables
 
-Revision ID: ed657e16ce20
-Revises: 41c073a46b63
-Create Date: 2016-08-28 11:50:20.973452
+Revision ID: a0fb193b6085
+Revises: 5aae5ada6624
+Create Date: 2017-08-18 15:58:03.630888
 
 """
 
 # revision identifiers, used by Alembic.
-revision = 'ed657e16ce20'
-down_revision = '41c073a46b63'
+revision = 'a0fb193b6085'
+down_revision = '5aae5ada6624'
 
 from alembic import op
 import sqlalchemy as sa

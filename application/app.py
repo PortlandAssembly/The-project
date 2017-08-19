@@ -1,8 +1,11 @@
 from flask import request, render_template, jsonify, url_for, redirect, g
-from .models import User
+from .models import User, Message, Tag
 from index import app, db
 from sqlalchemy.exc import IntegrityError
 from .utils.auth import generate_token, requires_auth, verify_token
+from twilio.rest import Client
+from twilio.twiml.messaging_response import MessagingResponse
+import time, json;
 
 
 @app.route('/', methods=['GET'])
@@ -20,13 +23,22 @@ def any_root_path(path):
 def get_user():
     return jsonify(result=g.current_user)
 
+@app.route("/api/users", methods=["GET"])
+def get_users():
+    users = User.query.all()
+    if users:
+        return jsonify([user.as_dict() for user in users])
+    else:
+        return jsonify({ error: 'No Users found' })
+
 
 @app.route("/api/create_user", methods=["POST"])
 def create_user():
     incoming = request.get_json()
     user = User(
         email=incoming["email"],
-        password=incoming["password"]
+        password=incoming["password"],
+        phone=None
     )
     db.session.add(user)
 
@@ -42,6 +54,12 @@ def create_user():
         token=generate_token(new_user)
     )
 
+@app.route("/api/user/<int:user_id>", methods=["POST"])
+def update_user( user_id ):
+    user = db.session.query(User).get(user_id)
+    incoming = request.get_json()
+    user = user.update(values=incoming["user"])
+    return get_users() if user else jsonify({"error": "Error updating user record"})
 
 @app.route("/api/get_token", methods=["POST"])
 def get_token():
@@ -62,3 +80,58 @@ def is_token_valid():
         return jsonify(token_is_valid=True)
     else:
         return jsonify(token_is_valid=False), 403
+
+@app.route("/api/messages", methods=['GET'])
+def get_messages():
+    messages = Message.query.order_by(Message.timestamp)
+    if messages:
+        return jsonify([message.as_dict() for message in messages])
+    else:
+        return jsonify({ error: 'No Messages yet' })
+
+@app.route("/api/message", methods=['POST'])
+def incoming_message():
+    from_number = request.values.get('From', None)
+    body = request.values.get('Body', None)
+    timestamp = int(time.time())
+    user = User.from_number(from_number)
+
+    message = Message(body, user.id, timestamp, 0, 0)
+    db.session.add(message)
+    db.session.commit()
+
+    r = MessagingResponse()
+    r.message('Thanks for the tip.')
+    return str(r)
+
+@app.route("/api/tags", methods=['GET'])
+def get_tags():
+    tags = Tag.query.order_by(Tag.tag_type, Tag.tag_name)
+    if tags:
+        return jsonify([tag.as_dict() for tag in tags])
+    else:
+        return jsonify({error: 'No Tags yet'})
+
+@app.route("/api/create_tag", methods=['POST'])
+def create_tag():
+    incoming = request.get_json()
+    tag = Tag(
+        tag_type=incoming['tag_type'],
+        tag_name=incoming['tag_name'],
+    )
+    db.session.add(tag)
+    db.session.commit()
+
+    return get_tags()
+
+@app.route("/api/tag/<int:tag_id>", methods=['POST','DELETE'])
+def delete_tag(tag_id):
+    tag = Tag.query.filter_by(id=tag_id).first()
+
+    if tag:
+        db.session.delete( tag )
+
+    db.session.commit()
+
+    return get_tags()
+
