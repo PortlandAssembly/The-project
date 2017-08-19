@@ -1,13 +1,17 @@
 import React from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
+import { browserHistory } from 'react-router';
 import { List, ListItem, } from 'material-ui/List';
+import Chip from 'material-ui/Chip';
 import TextField from 'material-ui/TextField';
 import SelectField from 'material-ui/SelectField';
 import MenuItem from 'material-ui/MenuItem';
 import Divider from 'material-ui/Divider';
+import TagSelector from './TagSelector';
 import RaisedButton from 'material-ui/RaisedButton';
 import * as actionCreators from '../actions/users';
+import { fetchTags } from '../actions/tags';
 
 function mapStateToProps(state, props) {
     const { userId } = props.params;
@@ -15,10 +19,12 @@ function mapStateToProps(state, props) {
         isFetching: state.users.isFetching,
         loaded: state.users.loaded,
         user: state.users.users.find( u => u.id == parseInt( userId ) ),
+        tags: state.tags.tags
     };
 }
 
 function mapDispatchToProps(dispatch) {
+    actionCreators.fetchTags = fetchTags;
     return bindActionCreators(actionCreators, dispatch);
 }
 
@@ -27,6 +33,7 @@ class UserProfile extends React.Component { // eslint-disable-line react/prefer-
     componentDidMount() {
         const { dispatch, fetchUsers } = this.props;
         fetchUsers();
+        fetchTags()
     }
 
     handleChangeTextField = (key, event, value ) => {
@@ -43,15 +50,20 @@ class UserProfile extends React.Component { // eslint-disable-line react/prefer-
         this.setState({ user });
     }
 
-    //handleUpdateUser = () => {
-        //const user = t
-    //}
+    handleUpdateTags = newTags => {
+        const { user } = this.props;
+        user.tags = newTags;
+        user.isDirty = true;
+        this.setState({ user });
+    }
 
     handleReset = () => console.log( 'Resetting to default values' );
 
     render() {
-        const { user, handleUpdateUser } = this.props;
-        if ( ! user ) return;
+        const { user, tags, handleUpdateUser } = this.props;
+        if ( ! user ) { 
+            browserHistory.replace('/users');
+        }
         return (
             <div className="col-md-8">
                 <h1>View / Edit User</h1>
@@ -80,6 +92,8 @@ class UserProfile extends React.Component { // eslint-disable-line react/prefer-
                     <MenuItem value={1} primaryText="Verifier" />
                     <MenuItem value={2} primaryText="Admin" />
                 </SelectField>
+                <TagSelector currentTags={user.tags} availableTags={tags} 
+                    onUpdateTags={this.handleUpdateTags.bind(this)} />
                 <div style={{ textAlign: 'right' }} >
                     <RaisedButton 
                         label="Reset" 

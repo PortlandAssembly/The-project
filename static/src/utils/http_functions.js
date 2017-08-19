@@ -57,3 +57,28 @@ export function update_user(user, token) {
         user
     });
 }
+
+export function get_all_tags(token) {
+    return axios.get('/api/tags', tokenConfig(token));
+}
+
+export function create_tag(tag, token) {
+    let { tag_type, tag_name } = tag;
+    console.log( tag, tag_type, tag_name );
+    return axios.post('/api/create_tag', {
+        tag_type,
+        tag_name
+    });
+}
+
+export function delete_tag(tag, token) {
+    let { id } = tag;
+    return axios.delete(`/api/tag/${id}`, tag );
+}
+
+export function update_tag(tag, token) {
+    let { id } = tag;
+    return axios.post(`/api/tag/${id ? id : 'new'}`, {
+        tag
+    });
+}

@@ -1,5 +1,5 @@
 from flask import request, render_template, jsonify, url_for, redirect, g
-from .models import User, Message
+from .models import User, Message, Tag
 from index import app, db
 from sqlalchemy.exc import IntegrityError
 from .utils.auth import generate_token, requires_auth, verify_token
@@ -103,3 +103,35 @@ def incoming_message():
     r = MessagingResponse()
     r.message('Thanks for the tip.')
     return str(r)
+
+@app.route("/api/tags", methods=['GET'])
+def get_tags():
+    tags = Tag.query.order_by(Tag.tag_type, Tag.tag_name)
+    if tags:
+        return jsonify([tag.as_dict() for tag in tags])
+    else:
+        return jsonify({error: 'No Tags yet'})
+
+@app.route("/api/create_tag", methods=['POST'])
+def create_tag():
+    incoming = request.get_json()
+    tag = Tag(
+        tag_type=incoming['tag_type'],
+        tag_name=incoming['tag_name'],
+    )
+    db.session.add(tag)
+    db.session.commit()
+
+    return get_tags()
+
+@app.route("/api/tag/<int:tag_id>", methods=['POST','DELETE'])
+def delete_tag(tag_id):
+    tag = Tag.query.filter_by(id=tag_id).first()
+
+    if tag:
+        db.session.delete( tag )
+
+    db.session.commit()
+
+    return get_tags()
+

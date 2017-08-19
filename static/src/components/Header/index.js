@@ -82,6 +82,10 @@ export class Header extends Component {
                                     Browse Messages
                                 </MenuItem>
                                 <Divider />
+                                <MenuItem onClick={() => this.dispatchNewRoute('/tags')}>
+                                    Manage Tags
+                                </MenuItem>
+                                <Divider />
                                 <MenuItem onClick={() => this.dispatchNewRoute('/users')}>
                                     Browse Users
                                 </MenuItem>

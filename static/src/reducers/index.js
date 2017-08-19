@@ -4,6 +4,7 @@ import auth from './auth';
 import data from './data';
 import messages from './messages';
 import users from './users';
+import tags from './tags';
 
 const rootReducer = combineReducers({
     routing: routerReducer,
@@ -12,6 +13,7 @@ const rootReducer = combineReducers({
     data,
     messages,
     users,
+    tags,
 });
 
 export default rootReducer;

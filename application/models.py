@@ -23,6 +23,10 @@ class User(db.Model):
     password = db.Column(db.String(255))
     phone    = db.Column(db.String(15))
 
+    tags = relationship('UserTags',
+        primaryjoin="and_(User.id==UserTags.user_id)",
+        backref="user"
+        )
 
     def __init__(self, email="", password="", phone="", name=""):
         self.name = name
@@ -36,14 +40,23 @@ class User(db.Model):
             'id':    self.id,
             'name':  self.name,
             'phone': self.phone,
-            'email': self.email
+            'email': self.email,
+            'tags': [tag.tag_id for tag in self.tags]
         }
 
     def update(self, values):
+        # remove existing tags before updating
+        tags = UserTags.query.filter_by(user_id=self.id).all()
+        if tags:
+            for tag in tags:
+                db.session.delete(tag)
         for key, value in values.iteritems():
-            self.__setattr__(key, value)
-        print jsonify(values)
-        exit
+            if key=='tags':
+                for tag_id in value:
+                    tag = UserTags(user_id=self.id, tag_id=tag_id)
+                    db.session.add(tag)
+            else:
+                self.__setattr__(key, value)
         
         try:
             db.session.add(self)
@@ -83,11 +96,36 @@ class UserTags(db.Model):
     user_id  = db.Column(db.Integer(), ForeignKey('user.id'))
     tag_id   = db.Column(db.Integer(), ForeignKey('tag.id'))
 
+    tag = relationship("Tag",
+            primaryjoin="and_(UserTags.tag_id==Tag.id)",
+            backref="user_tags"
+            )
+
+    def __init__(self, user_id, tag_id):
+        self.user_id = user_id
+        self.tag_id = tag_id
+
+
 class Tag(db.Model):
     __tablename__ = 'tag'
     id       = db.Column(db.Integer(), primary_key = True)
     tag_type = db.Column(db.String(255))
     tag_name = db.Column(db.String(255))
+
+    def __init__(self, tag_type, tag_name):
+        self.tag_type = tag_type
+        self.tag_name = tag_name
+
+    def as_dict(self):
+        return {
+            'id':       self.id,
+            'tag_type': self.tag_type,
+            'tag_name': self.tag_name
+        }
+
+    @staticmethod 
+    def get_types():
+        return db.session.query(Tag.tag_type.distinct())
 
 class Message(db.Model):
     __tablename__ = "message"

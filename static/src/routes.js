@@ -12,6 +12,7 @@ import ProtectedView from './components/ProtectedView';
 import Messages from './components/Messages';
 import Users from './components/Users';
 import UserProfile from './components/UserProfile';
+import Tags from './components/Tags';
 import NotFound from './components/NotFound';
 
 import { DetermineAuth } from './components/DetermineAuth';
@@ -27,6 +28,7 @@ export default (
         <Route path="messages" component={requireAuthentication(Messages)} />
         <Route path="users" component={requireAuthentication(Users)} />
         <Route path="users/:userId" component={requireAuthentication(UserProfile)} />
+        <Route path="tags" component={requireAuthentication(Tags)} />
         <Route path="*" component={DetermineAuth(NotFound)} />
     </Route>
 );
