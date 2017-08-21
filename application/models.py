@@ -46,10 +46,9 @@ class User(db.Model):
 
     def update(self, values):
         # remove existing tags before updating
-        tags = UserTags.query.filter_by(user_id=self.id).all()
-        if tags:
-            for tag in tags:
-                db.session.delete(tag)
+        UserTags.query.filter_by(user_id=self.id).delete()
+        db.session.commit()
+        # add all tags selected
         for key, value in values.iteritems():
             if key=='tags':
                 for tag_id in value:

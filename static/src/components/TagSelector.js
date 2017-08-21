@@ -31,9 +31,11 @@ class TagSelector extends React.Component { // eslint-disable-line react/prefer-
                     <h5>User Tags</h5>
                     { currentTags.map( tag => {
                         const _tag = availableTags.find( t => t.id == tag );
-                        console.log( tag, _tag );
+                        if ( ! _tag ) {
+                            return null;
+                        }
                         return ( 
-                            <Chip key={_tag.id} 
+                            <Chip key={tag} 
                                 style={{ float: 'left', marginRight: '0.25em' }}
                                 onRequestDelete={() => requestDelete(tag)} >
                                 { _tag.tag_type }: { _tag.tag_name }

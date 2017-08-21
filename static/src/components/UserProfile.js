@@ -10,8 +10,8 @@ import MenuItem from 'material-ui/MenuItem';
 import Divider from 'material-ui/Divider';
 import TagSelector from './TagSelector';
 import RaisedButton from 'material-ui/RaisedButton';
-import * as actionCreators from '../actions/users';
-import { fetchTags } from '../actions/tags';
+import * as userActionCreators from '../actions/users';
+import * as tagsActionCreators from '../actions/tags';
 
 function mapStateToProps(state, props) {
     const { userId } = props.params;
@@ -24,14 +24,14 @@ function mapStateToProps(state, props) {
 }
 
 function mapDispatchToProps(dispatch) {
-    actionCreators.fetchTags = fetchTags;
+    const actionCreators = { ...userActionCreators, ...tagsActionCreators };
     return bindActionCreators(actionCreators, dispatch);
 }
 
 @connect(mapStateToProps, mapDispatchToProps)
 class UserProfile extends React.Component { // eslint-disable-line react/prefer-stateless-function
     componentDidMount() {
-        const { dispatch, fetchUsers } = this.props;
+        const { dispatch, fetchUsers, fetchTags } = this.props;
         fetchUsers();
         fetchTags()
     }
@@ -61,8 +61,8 @@ class UserProfile extends React.Component { // eslint-disable-line react/prefer-
 
     render() {
         const { user, tags, handleUpdateUser } = this.props;
-        if ( ! user ) { 
-            browserHistory.replace('/users');
+        if ( ! user || ! tags ) { 
+            return null; // loading
         }
         return (
             <div className="col-md-8">
