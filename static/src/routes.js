@@ -10,6 +10,7 @@ import LoginView from './components/LoginView';
 import RegisterView from './components/RegisterView';
 import ProtectedView from './components/ProtectedView';
 import Messages from './components/Messages';
+import MessageActions from './components/MessageActions';
 import Users from './components/Users';
 import UserProfile from './components/UserProfile';
 import Tags from './components/Tags';
@@ -26,6 +27,7 @@ export default (
         <Route path="register" component={requireNoAuthentication(RegisterView)} />
         <Route path="home" component={requireNoAuthentication(HomeContainer)} />
         <Route path="messages" component={requireAuthentication(Messages)} />
+        <Route path="messages/:messageId" component={requireAuthentication(MessageActions)} />
         <Route path="users" component={requireAuthentication(Users)} />
         <Route path="users/:userId" component={requireAuthentication(UserProfile)} />
         <Route path="tags" component={requireAuthentication(Tags)} />
