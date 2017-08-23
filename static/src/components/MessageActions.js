@@ -5,16 +5,18 @@ import { Link } from 'react-router';
 import { List, ListItem } from 'material-ui/List';
 import Paper from 'material-ui/Paper';
 import Divider from 'material-ui/Divider';
-import TextField from 'material-ui/TextField';
-import RaisedButton from 'material-ui/RaisedButton';
-import ActionFeedback from 'material-ui/svg-icons/action/feedback';
 import Subheader from 'material-ui/Subheader';
 import { Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle } from 'material-ui/Toolbar'
+import Popover from 'material-ui/Popover/Popover';
+import IconButton from 'material-ui/IconButton';
+import { Menu, MenuItem } from 'material-ui/Menu';
+import TextField from 'material-ui/TextField';
+import RaisedButton from 'material-ui/RaisedButton';
+import CommunicationTextsms from 'material-ui/svg-icons/communication/textsms';
+import UserDisplay from './UserDisplay';
 import * as messageActionCreators from '../actions/messages';
 import * as userActionCreators from '../actions/users';
 import * as moment from 'moment';
-//import MessageParent from './MessageParent';
-//import MessageResponse from './MessageResponse';
 
 function mapStateToProps(state, props) {
     const { messageId } = props.params;
@@ -36,43 +38,16 @@ function mapDispatchToProps(dispatch) {
 }
 
 @connect(mapStateToProps, mapDispatchToProps)
-class MessageActions extends React.Component { // eslint-disable-line react/prefer-stateless-function
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            message_text: ''
-        };
-    }
-
+class MessageDetailView extends React.Component { // eslint-disable-line react/prefer-stateless-function
     componentDidMount() {
         const { dispatch, fetchMessages, fetchUsers, postMessage } = this.props;
         fetchMessages();
         fetchUsers();
     }
 
-    updateText = (event) => {
-        this.setState({ 
-            message_text: event.target.value 
-        });
-    }
-
-    sendResponse = () => {
-        const { message, postMessage } = this.props;
-        const { message_text } = this.state;
-
-        const postMessageRequest = postMessage({
-            to: message.author,
-            in_response_to: message.id,
-            message_text: message_text
-        });
-        
-        postMessageRequest.then( () => this.setState({ message_text: '' }) );
-    }
 
     render() {
         const { isFetching, loaded, message, parent, responses, users, postMessage } = this.props;
-        const { message_text } = this.state;
 
         if ( ! message || ! users ) {
             return null;
@@ -87,23 +62,10 @@ class MessageActions extends React.Component { // eslint-disable-line react/pref
                 <Divider inset={false} />
                 { parent && ( <MessageParent key={parent.id} message={parent} /> ) }
                 <Paper style={{ padding: '20px' }}>
-                    <MessageView message={message} />
+                    <MessageView message={message} withLinks={true} />
+                    <MessageActions postMessage={postMessage} message={message} author={user} />
                  </Paper>
                  { responses.map( response => ( <MessageResponse key={response.id} message={response} /> ) ) }
-                 <Subheader>Actions:</Subheader>
-                 <TextField 
-                    fullWidth={true}
-                    value={message_text}
-                    onChange={this.updateText}
-                    floatingLabelText="Compose response"
-                    multiLine={true} rows={3} rowsMax={6}
-                    />
-                <RaisedButton 
-                    label="Send Message" 
-                    primary={true} 
-                    disabled={! message_text.length}
-                    onTouchTap={this.sendResponse}
-                    />
             </div>
         );
     }
@@ -167,7 +129,7 @@ class MessageLink extends React.Component {
 
         return (
             <Link to={`/messages/${message.id}`}>
-                <MessageView message={message} />
+                <MessageView message={message} withLinks={false} />
             </Link>
         );
     }
@@ -176,21 +138,86 @@ class MessageLink extends React.Component {
 @connect(mapChildStateToProps)
 class MessageView extends React.Component {
     render() {
-        const { message, author, outgoing_to } = this.props;
+        const { message, author, outgoing_to, withLinks } = this.props;
         const message_time = moment.unix( message.timestamp );
 
         return (
             <div>
                 <p><b>Message Text: </b> {message.text}</p>
                 { outgoing_to ? (
-                    <p>Sent { message_time.fromNow() } to { outgoing_to.name ? outgoing_to.name : outgoing_to.phone } 
-                        by { author.name ? author.name : author.phone }.</p>
+                    <p>Sent { message_time.fromNow() } to <UserDisplay withLinks={withLinks} user={outgoing_to} 
+                        /> by <UserDisplay withLinks={withLinks} user={author} /></p>
                 ) : (
-                    <p>Received { message_time.fromNow() } from { author.name ? author.name : author.phone }.</p>
+                    <p>Received { message_time.fromNow() } from <UserDisplay withLinks={withLinks} user={author} /></p>
                 ) }
             </div>
         );
     }
 }
 
-export default MessageActions;
+class MessageActions extends React.Component {
+    constructor( props )  {
+        super( props );
+        this.state = {
+            open: false,
+            anchorEl: null,
+            replyText: ''
+        };
+    }
+
+    handleOpen = event => {
+        this.setState({
+            open: true,
+            anchorEl: event.currentTarget
+        });
+    }
+
+    updateText = (event) => {
+        this.setState({ 
+            replyText: event.target.value 
+        });
+    }
+
+    sendResponse = () => {
+        const { message, postMessage } = this.props;
+        const { replyText } = this.state;
+
+        const postMessageRequest = postMessage({
+            to: message.author,
+            in_response_to: message.id,
+            message_text: replyText
+        });
+        
+        this.setState({ replyText: '', open: false });
+    }
+
+    render() {
+        const { message, author } = this.props;
+        const { open, anchorEl, replyText } = this.state;
+
+        return (
+            <Toolbar>
+                 <ToolbarGroup>
+                     <ToolbarTitle text="Actions" />
+                     <IconButton onTouchTap={this.handleOpen}><CommunicationTextsms /></IconButton>
+                     <Popover open={open} anchorEl={anchorEl} style={ { padding: '0 10px 10px' } }>
+                         <TextField 
+                            fullWidth={true}
+                            value={replyText}
+                            onChange={this.updateText}
+                            floatingLabelText={ `Reply to ${author.name} via SMS` }
+                            multiLine={true} rows={3} rowsMax={6}
+                            />
+                        <RaisedButton 
+                            label="Send Message" 
+                            primary={true} 
+                            disabled={! replyText.length}
+                            onTouchTap={this.sendResponse}
+                            />
+                    </Popover>
+                </ToolbarGroup>
+            </Toolbar>
+        );
+    }
+}
+export default MessageDetailView;
