@@ -22,6 +22,7 @@ class User(db.Model):
     email    = db.Column(db.String(255), unique    = True)
     password = db.Column(db.String(255))
     phone    = db.Column(db.String(15))
+    last_msg = db.Column(db.Integer(), ForeignKey('message.id'))
 
     tags = relationship('UserTags',
         primaryjoin="and_(User.id==UserTags.user_id)",
@@ -63,6 +64,11 @@ class User(db.Model):
             return self
         except IntegrityError:
             return None
+
+    def mark_last_msg(self, last_msg):
+        self.__setattr__('last_msg', last_msg)
+        db.session.add(self)
+        db.session.commit()
 
     @staticmethod
     def hashed_password(password):
