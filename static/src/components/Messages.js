@@ -12,7 +12,7 @@ function mapStateToProps(state) {
     return {
         isFetching: state.messages.isFetching,
         loaded: state.messages.loaded,
-        messages: state.messages.messages.filter( m => m.parent == 0 ),
+        messages: state.messages.messages.filter( m => m.parent == null ),
         allMessages: state.messages.messages,
         users: state.users.users
     };

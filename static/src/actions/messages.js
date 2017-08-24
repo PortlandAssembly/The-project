@@ -1,6 +1,6 @@
-import { FETCH_INCOMING_MESSAGES_REQUEST, RECEIVE_INCOMING_MESSAGES, POST_NEW_MESSAGE_REQUEST } from '../constants/index';
+import { FETCH_INCOMING_MESSAGES_REQUEST, RECEIVE_INCOMING_MESSAGES, POST_NEW_MESSAGE_REQUEST, POST_BROADCAST_REQUEST } from '../constants/index';
 import { parseJSON } from '../utils/misc';
-import { get_new_messages, post_new_message } from '../utils/http_functions';
+import { get_new_messages, post_new_message, post_broadcast } from '../utils/http_functions';
 import { logoutAndRedirect } from './auth';
 
 export function receiveMessages(data) {
@@ -28,6 +28,13 @@ export function postMessageRequest() {
     };
 }
 
+export function postBroadcastRequest() {
+    return {
+        type: POST_BROADCAST_REQUEST,
+
+    };
+}
+
 export function fetchMessages(token) {
     return (dispatch) => {
         dispatch(fetchMessagesRequest());
@@ -49,6 +56,20 @@ export function postMessage(message) {
             .then(parseJSON)
             .then(response => {
                 dispatch(receiveMessages(response));
+            })
+            .catch(error => {
+                console.log(error)
+            });
+    }
+}
+
+export function postBroadcast(message) {
+    return (dispatch) => {
+        dispatch(postBroadcastRequest());
+        post_broadcast(message)
+            .then(parseJSON)
+            .then(response => {
+                dispatch(receiveMessages(response))
             })
             .catch(error => {
                 console.log(error)

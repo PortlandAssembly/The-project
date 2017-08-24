@@ -92,7 +92,10 @@ class UserProfile extends React.Component { // eslint-disable-line react/prefer-
                     <MenuItem value={1} primaryText="Verifier" />
                     <MenuItem value={2} primaryText="Admin" />
                 </SelectField>
-                <TagSelector currentTags={user.tags} availableTags={tags} 
+                <TagSelector 
+                    header="User Tags"
+                    searchLabel="Add a tag to this user"
+                    currentTags={user.tags} availableTags={tags} 
                     onUpdateTags={this.handleUpdateTags.bind(this)} />
                 <div style={{ textAlign: 'right' }} >
                     <RaisedButton 

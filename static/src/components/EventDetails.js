@@ -17,6 +17,7 @@ import UserDisplay from './UserDisplay';
 import * as messageActionCreators from '../actions/messages';
 import * as eventActionCreators from '../actions/events';
 import * as userActionCreators from '../actions/users';
+import Broadcast from './Broadcast';
 
 function mapStateToProps(state, props) {
     const { eventId } = props.params;
@@ -44,7 +45,6 @@ class EventDetails extends React.Component { // eslint-disable-line react/prefer
         fetchUsers();
     }
 
-
     render() {
         const { isFetching, loaded, event, eventMessages, users, postMessage  } = this.props;
 
@@ -66,11 +66,12 @@ class EventDetails extends React.Component { // eslint-disable-line react/prefer
                 { eventMessages.map( message => {
                     let user = users.find( u => u.id == message.author )
                     return (
-                        <Paper style={{ padding: '20px 20px 0' }}>
+                        <Paper style={{ padding: '10px 20px 5px', marginBottom: '10px' }}>
                             <MessageView message={message} withLinks={true} />
                          </Paper>
                     ) }
                ) }
+               <Broadcast event={event} />
             </div>
         );
     }

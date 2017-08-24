@@ -1,7 +1,7 @@
 import React from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import { Link } from 'react-router';
+import { Link, browserHistory } from 'react-router';
 import { List, ListItem } from 'material-ui/List';
 import Paper from 'material-ui/Paper';
 import Divider from 'material-ui/Divider';
@@ -140,7 +140,8 @@ class MessageLink extends React.Component {
 @connect(mapChildStateToProps)
 export class MessageView extends React.Component {
     render() {
-        const { message, author, outgoing_to, withLinks } = this.props;
+        const { message, author, withLinks } = this.props;
+        const { outgoing_to, broadcast_to } = message;
         const message_time = moment.unix( message.timestamp );
 
         return (
@@ -149,9 +150,11 @@ export class MessageView extends React.Component {
                 { outgoing_to ? (
                     <p>Sent { message_time.fromNow() } to <UserDisplay withLinks={withLinks} user={outgoing_to} 
                         /> by <UserDisplay withLinks={withLinks} user={author} /></p>
-                ) : (
-                    <p>Received { message_time.fromNow() } from <UserDisplay withLinks={withLinks} user={author} /></p>
-                ) }
+                ) : broadcast_to.length ? (
+                    <p>Broadcast (to {broadcast_to.length} users) { message_time.fromNow() } by <UserDisplay withLinks={withLinks} user={author} /></p>
+                    ) : (
+                        <p>Received { message_time.fromNow() } from <UserDisplay withLinks={withLinks} user={author} /></p>
+                    ) }
             </div>
         );
     }

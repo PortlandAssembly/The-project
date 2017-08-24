@@ -52,6 +52,11 @@ export function post_new_message(message) {
     return axios.post('/api/outgoing', message, tokenConfig(token) );
 }
 
+export function post_broadcast(message) {
+    const token = localStorage.getItem('token');
+    return axios.post('/api/broadcast', message, tokenConfig(token) );
+}
+
 export function get_all_users(token) {
     return axios.get('/api/users', tokenConfig(token));
 }

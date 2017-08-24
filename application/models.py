@@ -95,6 +95,7 @@ class User(db.Model):
             db.session.commit()
         return user
 
+
 class UserTags(db.Model):
     __tablename__ = "user_tag"
     id       = db.Column(db.Integer(), primary_key = True)
@@ -139,26 +140,32 @@ class Message(db.Model):
     text          = db.Column(db.String(1024))
     author        = db.Column(db.Integer,ForeignKey('user.id'))
     outgoing_to   = db.Column(db.Integer,ForeignKey('user.id'))
+    broadcast_to  = db.Column(db.String(2048)) # XXX? in Postgres this would work better as an array, 
+                                               #  but for now, I'm just storing it as a string, and splitting
+                                               # it on output since I'm trying to get as far as possible without
+                                               # requiring Postgres
     timestamp     = db.Column(db.Integer())
     parent        = db.Column(db.Integer,ForeignKey('message.id'))
 
-    def __init__(self, text="", author="", outgoing_to="", timestamp="", parent="", event=""):
+    def __init__(self, text="", author="", outgoing_to="", broadcast_to="", timestamp="", parent="", event=""):
         self.text = text
         self.author = author
         self.outgoing_to = outgoing_to
+        self.broadcast_to = broadcast_to
         self.timestamp = timestamp
         self.parent = parent
         self.event = event
 
     def as_dict(self): 
         return {
-            'id':          self.id,
-            'text':        self.text,
-            'author':      self.author,
-            'outgoing_to': self.outgoing_to,
-            'timestamp':   self.timestamp,
-            'parent':      self.parent,
-            'event':       self.event,
+            'id':           self.id,
+            'text':         self.text,
+            'author':       self.author,
+            'outgoing_to':  self.outgoing_to,
+            'broadcast_to': filter(None, self.broadcast_to.split('|')),
+            'timestamp':    self.timestamp,
+            'parent':       self.parent,
+            'event':        self.event,
         }
 
     def get_responses():
