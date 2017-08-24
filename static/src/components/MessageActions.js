@@ -40,7 +40,7 @@ function mapDispatchToProps(dispatch) {
 }
 
 @connect(mapStateToProps, mapDispatchToProps)
-class MessageDetailView extends React.Component { // eslint-disable-line react/prefer-stateless-function
+export default class MessageDetailView extends React.Component { // eslint-disable-line react/prefer-stateless-function
     componentDidMount() {
         const { dispatch, fetchMessages, fetchUsers, postMessage } = this.props;
         fetchMessages();
@@ -138,7 +138,7 @@ class MessageLink extends React.Component {
 }
 
 @connect(mapChildStateToProps)
-class MessageView extends React.Component {
+export class MessageView extends React.Component {
     render() {
         const { message, author, outgoing_to, withLinks } = this.props;
         const message_time = moment.unix( message.timestamp );
@@ -157,7 +157,7 @@ class MessageView extends React.Component {
     }
 }
 
-class MessageActions extends React.Component {
+export class MessageActions extends React.Component {
     constructor( props )  {
         super( props );
         this.state = {
@@ -256,4 +256,3 @@ class MessageActions extends React.Component {
         );
     }
 }
-export default MessageDetailView;
