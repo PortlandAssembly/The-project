@@ -87,3 +87,7 @@ export function update_tag(tag, token) {
         tag
     });
 }
+
+export function create_event(event, message_id) {
+    return axios.put('/api/event', { ...event, message_id } );
+}

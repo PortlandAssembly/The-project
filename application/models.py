@@ -171,3 +171,28 @@ class Message(db.Model):
     @staticmethod
     def get_for_event(event):
         return User.query.filter_by(event=event.id,parent=null)
+
+class Event(db.Model):
+    __tablename__ = "event"
+    id            = db.Column(db.Integer(), primary_key = True)
+    name          = db.Column(db.String(255))
+    description   = db.Column(db.Text())
+    verified      = db.Column(db.Boolean)
+    active        = db.Column(db.Boolean)
+
+    def __init__(self, name="", description=""):
+        self.name = name
+        self.description = description
+        self.verified = False
+        self.active = True
+
+    def as_dict(self):
+        return {
+            'id':          self.id,
+            'name':        self.name,
+            'description': self.description,
+            'verified':    self.verified,
+            'active':      self.active,
+        }
+
+

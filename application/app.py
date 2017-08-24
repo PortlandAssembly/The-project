@@ -1,5 +1,5 @@
 from flask import request, render_template, jsonify, url_for, redirect, g
-from .models import User, Message, Tag
+from .models import User, Message, Tag, Event
 from index import app, db
 from sqlalchemy.exc import IntegrityError
 from .utils.auth import generate_token, requires_auth, verify_token
@@ -177,4 +177,32 @@ def send_message():
         return jsonify ({error: 'Error sending message'})
 
     return jsonify([ message.as_dict() ])
+
+@app.route("/api/events", methods=['GET'])
+def get_events():
+    events=Event.query.all()
+    if events:
+        return jsonify([event.as_dict() for event in events])
+    else:
+        return jsonify({ error: 'No events yet' })
+
+@app.route("/api/event", methods=['PUT'])
+def create_event():
+    incoming = request.get_json()
+    try:
+        event=Event(
+            name=incoming['name'],
+            description=incoming['description'] or '',
+            )
+        db.session.add(event)
+        if incoming['message_id']:
+            message=db.session.query(Message).get(incoming["message_id"])
+            message.__setattr__('event', event.id)
+            db.session.add(message)
+        db.session.commit()
+
+    except IntegrityError:
+        return jsonify ({error: 'Error creating event'})
+
+    return get_events()
 
