@@ -42,7 +42,8 @@ class User(db.Model):
             'name':  self.name,
             'phone': self.phone,
             'email': self.email,
-            'tags': [tag.tag_id for tag in self.tags]
+            'tags': [tag.tag_id for tag in self.tags],
+            'last_msg': self.last_msg
         }
 
     def update(self, values):

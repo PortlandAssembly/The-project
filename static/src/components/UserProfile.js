@@ -1,7 +1,7 @@
 import React from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import { browserHistory } from 'react-router';
+import { Link, browserHistory } from 'react-router';
 import { List, ListItem, } from 'material-ui/List';
 import Chip from 'material-ui/Chip';
 import TextField from 'material-ui/TextField';
@@ -97,6 +97,7 @@ class UserProfile extends React.Component { // eslint-disable-line react/prefer-
                     searchLabel="Add a tag to this user"
                     currentTags={user.tags} availableTags={tags} 
                     onUpdateTags={this.handleUpdateTags.bind(this)} />
+                <Link to={`/messages/${user.last_msg}`}>Last message</Link>
                 <div style={{ textAlign: 'right' }} >
                     <RaisedButton 
                         label="Reset" 

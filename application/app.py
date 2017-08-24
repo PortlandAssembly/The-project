@@ -96,13 +96,17 @@ def incoming_message():
     body = request.values.get('Body', None)
     timestamp = int(time.time())
     user = User.from_number(from_number)
+    event = 0
+    if user.last_msg:
+        last_msg = Message.query.get(user.last_msg)
+        event = last_msg.event
 
     message = Message(
         text=body, 
         author=user.id, 
         timestamp=timestamp, 
         parent=user.last_msg, 
-        event=0
+        event=event
         )
     db.session.add(message)
     db.session.commit()
