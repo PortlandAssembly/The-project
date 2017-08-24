@@ -88,6 +88,10 @@ export function update_tag(tag, token) {
     });
 }
 
+export function get_all_events(token) {
+    return axios.get('/api/events', tokenConfig(token));
+}
+
 export function create_event(event, message_id) {
     return axios.put('/api/event', { ...event, message_id } );
 }

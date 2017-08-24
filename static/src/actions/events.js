@@ -1,8 +1,6 @@
 import { FETCH_EVENTS_REQUEST, UPDATE_EVENT_REQUEST, RECEIVE_EVENTS } from '../constants/index';
 import { parseJSON } from '../utils/misc';
 import { get_all_events, create_event } from '../utils/http_functions';
-import { logoutAndRedirect } from './auth';
-import { browserHistory } from 'react-router';
 
 export function receiveEvents(data) {
     return {
@@ -32,7 +30,7 @@ export function updateEventRequest() {
 export function fetchEvents(token) {
     return (dispatch) => {
         dispatch(fetchEventsRequest());
-        get_all_users(token)
+        get_all_events()
             .then(parseJSON)
             .then(response => {
                 dispatch(receiveEvents(response));
@@ -45,22 +43,11 @@ export function fetchEvents(token) {
 
 export function createEvent(event, message_id) {
     return (dispatch) => {
+        dispatch(updateEventRequest());
         create_event( event, message_id )
             .then(parseJSON)
+            .then(response => dispatch(receiveEvents(response)))
+            .catch(console.log);
     }
 }
 
-export function handleUpdateEvent(user, token) {
-    return (dispatch) => {
-        dispatch(updateEventRequest());
-        update_user(user)
-            .then(parseJSON)
-            .then(response => {
-                browserHistory.push('/events');
-                dispatch(receiveEvents(response));
-            })
-            .catch(error => {
-                console.log(error)
-            });
-    }
-}
