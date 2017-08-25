@@ -137,18 +137,18 @@ class Tag(db.Model):
 class Message(db.Model):
     __tablename__ = "message"
     id            = db.Column(db.Integer(), primary_key = True)
-    event         = db.Column(db.Integer())
+    event         = db.Column(db.Integer(), nullable=True)
     text          = db.Column(db.String(1024))
-    author        = db.Column(db.Integer,ForeignKey('user.id'))
-    outgoing_to   = db.Column(db.Integer,ForeignKey('user.id'))
+    author        = db.Column(db.Integer,ForeignKey('user.id'), nullable=False)
+    outgoing_to   = db.Column(db.Integer,ForeignKey('user.id'), nullable=True)
     broadcast_to  = db.Column(db.String(2048)) # XXX? in Postgres this would work better as an array, 
                                                #  but for now, I'm just storing it as a string, and splitting
                                                # it on output since I'm trying to get as far as possible without
                                                # requiring Postgres
     timestamp     = db.Column(db.Integer())
-    parent        = db.Column(db.Integer,ForeignKey('message.id'))
+    parent        = db.Column(db.Integer,ForeignKey('message.id'), nullable=True)
 
-    def __init__(self, text="", author="", outgoing_to="", broadcast_to="", timestamp="", parent="", event=""):
+    def __init__(self, text="", author="", outgoing_to=None, broadcast_to="", timestamp="", parent=None, event=None):
         self.text = text
         self.author = author
         self.outgoing_to = outgoing_to

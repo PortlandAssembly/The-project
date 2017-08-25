@@ -224,6 +224,7 @@ def get_events():
 @app.route("/api/event", methods=['PUT'])
 def create_event():
     incoming = request.get_json()
+
     try:
         event=Event(
             name=incoming['name'],
@@ -234,7 +235,7 @@ def create_event():
             message=db.session.query(Message).get(incoming["message_id"])
             message.__setattr__('event', event.id)
             db.session.add(message)
-        db.session.commit()
+            db.session.commit()
 
     except IntegrityError:
         return jsonify ({error: 'Error creating event'})

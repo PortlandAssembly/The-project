@@ -1,7 +1,7 @@
 alembic==0.8.7
 asn1crypto==0.22.0
 bcrypt==3.1.0
-cffi==1.7.0
+cffi==1.10.0
 click==6.6
 coverage==4.2
 cryptography==2.0.2
