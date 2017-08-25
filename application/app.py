@@ -190,7 +190,7 @@ def send_broadcast():
     author = g.current_user['id']
     event = incoming['event']
     filters = incoming['filters']
-    audience = db.session.query(User).filter(*[UserTags.tag_id==tag for tag in filters]).filter(User.phone != "")
+    audience = db.session.query(User).filter(User.phone != "").filter(*[UserTags.tag_id==tag for tag in filters]) 
 
     if message_text and event and audience:
         message=Message(
@@ -211,6 +211,8 @@ def send_broadcast():
             user.mark_last_msg(last_msg=message.id)
 
         return jsonify([message.as_dict()])
+
+    return jsonify({'error': 'No audience selected to send to'})
 
 
 @app.route("/api/events", methods=['GET'])
