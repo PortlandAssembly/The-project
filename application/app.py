@@ -190,7 +190,7 @@ def send_broadcast():
     author = g.current_user['id']
     event = incoming['event']
     filters = incoming['filters']
-    audience = db.session.query(User).filter(*[UserTags.tag_id.contains(tag) for tag in filters]).filter(User.phone != "")
+    audience = db.session.query(User).filter(*[UserTags.tag_id==tag for tag in filters]).filter(User.phone != "")
 
     if message_text and event and audience:
         message=Message(
