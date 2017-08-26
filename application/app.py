@@ -2,6 +2,7 @@ from flask import request, render_template, jsonify, url_for, redirect, g
 from .models import User, Message, UserTags, Tag, Event
 from index import app, db
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.sql.expression import and_
 from .utils.auth import generate_token, requires_auth, verify_token
 from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
@@ -190,7 +191,10 @@ def send_broadcast():
     author = g.current_user['id']
     event = incoming['event']
     filters = incoming['filters']
-    audience = db.session.query(User).filter(User.phone != "").filter(*[UserTags.tag_id==tag for tag in filters]) 
+    audience = db.session.query(User) \
+            .filter(User.phone != "") \
+            .filter(and_(User.tags.contains(UserTags.query.get(tag_filter)) for tag_filter in filters)) \
+            .all()
 
     if message_text and event and audience:
         message=Message(
