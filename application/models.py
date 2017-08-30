@@ -10,7 +10,8 @@ from sqlalchemy import (
     ForeignKey,
     DateTime,
     Sequence,
-    Float
+    Float,
+    Enum
 )
 from index import db, bcrypt
 
@@ -20,6 +21,8 @@ class User(db.Model):
     id       = db.Column(db.Integer(), primary_key = True)
     name     = db.Column(db.String(255))
     email    = db.Column(db.String(255), unique    = True)
+    active   = db.Column(db.Boolean())
+    role     = db.Column(db.Enum("responder", "verifier", "admin", name="role"))
     password = db.Column(db.String(255))
     phone    = db.Column(db.String(15))
     last_msg = db.Column(db.Integer(), ForeignKey('message.id'))
@@ -29,9 +32,10 @@ class User(db.Model):
         backref="user"
         )
 
-    def __init__(self, email="", password="", phone="", name=""):
+    def __init__(self, email="", password="", phone="", name="", role="responder"):
         self.name = name
         self.email = email
+        self.role = role
         self.active = True
         self.password = User.hashed_password(password) if password else None
         self.phone = phone
@@ -41,18 +45,19 @@ class User(db.Model):
             'id':    self.id,
             'name':  self.name,
             'phone': self.phone,
+            'role':  self.role,
             'email': self.email,
             'tags': [tag.tag_id for tag in self.tags],
             'last_msg': self.last_msg
         }
 
     def update(self, values):
-        # remove existing tags before updating
-        UserTags.query.filter_by(user_id=self.id).delete()
-        db.session.commit()
-        # add all tags selected
         for key, value in values.iteritems():
             if key=='tags':
+                # remove existing tags before updating
+                UserTags.query.filter_by(user_id=self.id).delete()
+                db.session.commit()
+                # add all tags selected
                 for tag_id in value:
                     tag = UserTags(user_id=self.id, tag_id=tag_id)
                     db.session.add(tag)
