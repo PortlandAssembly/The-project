@@ -98,7 +98,6 @@ class UserProfile extends React.Component { // eslint-disable-line react/prefer-
                     searchLabel="Add a tag to this user"
                     currentTags={user.tags} availableTags={tags} 
                     onUpdateTags={this.handleUpdateTags.bind(this)} />
-                <Link to={`/messages/${user.last_msg}`}>Last message</Link>
                 <div style={{ textAlign: 'right' }} >
                     <RaisedButton 
                         label="Reset" 
@@ -114,6 +113,9 @@ class UserProfile extends React.Component { // eslint-disable-line react/prefer-
                         onTouchTap={() => handleUpdateUser(user)}
                         />
                 </div>
+                { user.last_msg && (
+                    <Link to={`/messages/${user.last_msg}`}>Last message</Link>
+                ) }
             </div>
         );
     }
