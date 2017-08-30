@@ -11,6 +11,7 @@ import * as tagActionCreators from '../actions/tags';
 
 import Paper from 'material-ui/Paper';
 import TextField from 'material-ui/TextField';
+import Checkbox from 'material-ui/Checkbox';
 import RaisedButton from 'material-ui/RaisedButton';
 
 function mapStateToProps(state, props) {
@@ -52,21 +53,32 @@ export default class Broadcast extends React.Component {
             filters: currentTags
         });
 
-        this.setState({ message_text: '', currentTags: [] });
+        this.setState({ message_text: '', currentTags: [], verifiers_only: false });
+    }
+
+    updateCheck = () => {
+        this.setState( oldState => {
+            return {
+                verifiers_only: ! oldState.verifiers_only,
+            };
+        });
     }
 
     render() {
         const { tags, users, postBroadcast } = this.props;
-        const { message_text, currentTags } = this.state;
+        const { message_text, currentTags, verifiers_only } = this.state;
 
-        const audience = users.filter( user => {
-            for ( let currentTag of currentTags ) {
-                if ( -1 === user.tags.indexOf( currentTag ) ) {
-                    return false;
+        const audience = users
+            .filter( user => ( !! user.phone ) )
+            .filter( user => ! verifiers_only || 'verifier' === user.role )
+            .filter( user => {
+                for ( let currentTag of currentTags ) {
+                    if ( -1 === user.tags.indexOf( currentTag ) ) {
+                        return false;
+                    }
                 }
-            }
-            return true;
-        });
+                return true;
+            });
 
         return (
             <Paper style={{ padding: '20px' }}>
@@ -77,6 +89,11 @@ export default class Broadcast extends React.Component {
                     currentTags={currentTags} availableTags={tags} 
                     onUpdateTags={this.updateTags} 
                     />
+                 <Checkbox
+                    label="Send to verifiers only"
+                    checked={this.state.verifiers_only}
+                    onCheck={this.updateCheck.bind(this)}
+                />
                 <TextField 
                     value={message_text}
                     onChange={this.updateMessageText}
