@@ -1,6 +1,6 @@
-import { FETCH_INCOMING_MESSAGES_REQUEST, RECEIVE_INCOMING_MESSAGES } from '../constants/index';
+import { FETCH_INCOMING_MESSAGES_REQUEST, RECEIVE_INCOMING_MESSAGES, POST_NEW_MESSAGE_REQUEST } from '../constants/index';
 import { parseJSON } from '../utils/misc';
-import { get_new_messages } from '../utils/http_functions';
+import { get_new_messages, post_new_message } from '../utils/http_functions';
 import { logoutAndRedirect } from './auth';
 
 export function receiveMessages(data) {
@@ -21,6 +21,13 @@ export function fetchMessagesRequest() {
     };
 }
 
+export function postMessageRequest() {
+    return {
+        type: POST_NEW_MESSAGE_REQUEST,
+        isFetching: true
+    };
+}
+
 export function fetchMessages(token) {
     return (dispatch) => {
         dispatch(fetchMessagesRequest());
@@ -33,4 +40,18 @@ export function fetchMessages(token) {
                 console.log(error)
             });
     };
+}
+
+export function postMessage(message) {
+    return (dispatch) => {
+        dispatch(postMessageRequest());
+        post_new_message(message)
+            .then(parseJSON)
+            .then(response => {
+                dispatch(receiveMessages(response));
+            })
+            .catch(error => {
+                console.log(error)
+            });
+    }
 }

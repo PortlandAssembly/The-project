@@ -22,6 +22,7 @@ class User(db.Model):
     email    = db.Column(db.String(255), unique    = True)
     password = db.Column(db.String(255))
     phone    = db.Column(db.String(15))
+    last_msg = db.Column(db.Integer(), ForeignKey('message.id'))
 
     tags = relationship('UserTags',
         primaryjoin="and_(User.id==UserTags.user_id)",
@@ -63,6 +64,11 @@ class User(db.Model):
             return self
         except IntegrityError:
             return None
+
+    def mark_last_msg(self, last_msg):
+        self.__setattr__('last_msg', last_msg)
+        db.session.add(self)
+        db.session.commit()
 
     @staticmethod
     def hashed_password(password):
@@ -132,24 +138,27 @@ class Message(db.Model):
     event         = db.Column(db.Integer())
     text          = db.Column(db.String(1024))
     author        = db.Column(db.Integer,ForeignKey('user.id'))
+    outgoing_to   = db.Column(db.Integer,ForeignKey('user.id'))
     timestamp     = db.Column(db.Integer())
     parent        = db.Column(db.Integer,ForeignKey('message.id'))
 
-    def __init__(self, text, author, timestamp, parent, event):
+    def __init__(self, text="", author="", outgoing_to="", timestamp="", parent="", event=""):
         self.text = text
         self.author = author
+        self.outgoing_to = outgoing_to
         self.timestamp = timestamp
         self.parent = parent
         self.event = event
 
     def as_dict(self): 
         return {
-            'id':        self.id,
-            'text':      self.text,
-            'author':    self.author,
-            'timestamp': self.timestamp,
-            'parent':    self.parent,
-            'event':     self.event,
+            'id':          self.id,
+            'text':        self.text,
+            'author':      self.author,
+            'outgoing_to': self.outgoing_to,
+            'timestamp':   self.timestamp,
+            'parent':      self.parent,
+            'event':       self.event,
         }
 
     def get_responses():

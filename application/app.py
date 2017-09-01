@@ -5,8 +5,9 @@ from sqlalchemy.exc import IntegrityError
 from .utils.auth import generate_token, requires_auth, verify_token
 from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
-import time, json;
+import time, json, os;
 
+twilio_client = Client(os.environ['TWILIO_ACCOUNT_SID'], os.environ['TWILIO_AUTH_TOKEN'])
 
 @app.route('/', methods=['GET'])
 def index():
@@ -29,7 +30,7 @@ def get_users():
     if users:
         return jsonify([user.as_dict() for user in users])
     else:
-        return jsonify({ error: 'No Users found' })
+        return jsonify({ 'error': 'No Users found' })
 
 
 @app.route("/api/create_user", methods=["POST"])
@@ -96,12 +97,18 @@ def incoming_message():
     timestamp = int(time.time())
     user = User.from_number(from_number)
 
-    message = Message(body, user.id, timestamp, 0, 0)
+    message = Message(
+        text=body, 
+        author=user.id, 
+        timestamp=timestamp, 
+        parent=user.last_msg, 
+        event=0
+        )
     db.session.add(message)
     db.session.commit()
 
     r = MessagingResponse()
-    r.message('Thanks for the tip.')
+    r.message( 'Thanks for the reply.' if user.last_msg else 'Thanks for the tip.')
     return str(r)
 
 @app.route("/api/tags", methods=['GET'])
@@ -134,4 +141,40 @@ def delete_tag(tag_id):
     db.session.commit()
 
     return get_tags()
+
+@app.route("/api/outgoing", methods=['POST'])
+@requires_auth
+def send_message():
+    incoming = request.get_json()
+    to = incoming['to']
+    message_text = incoming['message_text']
+    in_response_to = incoming['in_response_to']
+
+    to_user = db.session.query(User).get(to)
+    in_response_to_message = db.session.query(Message).get(in_response_to)
+
+    if not to_user or not to_user.phone:
+        return jsonify({error: 'User not found'})
+
+    try:
+        sent_message=twilio_client.messages.create(
+            to=to_user.phone,
+            from_=os.environ['TWILIO_NUMBER'],
+            body=message_text
+            )
+        message=Message(
+            text=message_text,
+            outgoing_to=to,
+            author=g.current_user['id'],
+            timestamp=int(time.time()),
+            parent=in_response_to
+            )
+        db.session.add(message)
+        db.session.commit()
+        to_user.mark_last_msg(last_msg=message.id)
+
+    except IntegrityError:
+        return jsonify ({error: 'Error sending message'})
+
+    return jsonify([ message.as_dict() ])
 
