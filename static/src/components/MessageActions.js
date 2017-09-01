@@ -1,7 +1,7 @@
 import React from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import { Link } from 'react-router';
+import { Link, browserHistory } from 'react-router';
 import { List, ListItem } from 'material-ui/List';
 import Paper from 'material-ui/Paper';
 import Divider from 'material-ui/Divider';
@@ -13,9 +13,11 @@ import { Menu, MenuItem } from 'material-ui/Menu';
 import TextField from 'material-ui/TextField';
 import RaisedButton from 'material-ui/RaisedButton';
 import CommunicationTextsms from 'material-ui/svg-icons/communication/textsms';
+import ActionEvent from 'material-ui/svg-icons/action/event';
 import UserDisplay from './UserDisplay';
 import * as messageActionCreators from '../actions/messages';
 import * as userActionCreators from '../actions/users';
+import * as eventActionCreators from '../actions/events';
 import * as moment from 'moment';
 
 function mapStateToProps(state, props) {
@@ -33,12 +35,12 @@ function mapStateToProps(state, props) {
 
 
 function mapDispatchToProps(dispatch) {
-    const actionCreators = { ...messageActionCreators, ...userActionCreators };
+    const actionCreators = { ...messageActionCreators, ...userActionCreators, ...eventActionCreators };
     return bindActionCreators(actionCreators, dispatch);
 }
 
 @connect(mapStateToProps, mapDispatchToProps)
-class MessageDetailView extends React.Component { // eslint-disable-line react/prefer-stateless-function
+export default class MessageDetailView extends React.Component { // eslint-disable-line react/prefer-stateless-function
     componentDidMount() {
         const { dispatch, fetchMessages, fetchUsers, postMessage } = this.props;
         fetchMessages();
@@ -47,7 +49,7 @@ class MessageDetailView extends React.Component { // eslint-disable-line react/p
 
 
     render() {
-        const { isFetching, loaded, message, parent, responses, users, postMessage } = this.props;
+        const { isFetching, loaded, message, parent, responses, users, postMessage, createEvent } = this.props;
 
         if ( ! message || ! users ) {
             return null;
@@ -63,7 +65,7 @@ class MessageDetailView extends React.Component { // eslint-disable-line react/p
                 { parent && ( <MessageParent key={parent.id} message={parent} /> ) }
                 <Paper style={{ padding: '20px' }}>
                     <MessageView message={message} withLinks={true} />
-                    <MessageActions postMessage={postMessage} message={message} author={user} />
+                    <MessageActions postMessage={postMessage} createEvent={createEvent} message={message} author={user} />
                  </Paper>
                  { responses.map( response => ( <MessageResponse key={response.id} message={response} /> ) ) }
             </div>
@@ -136,9 +138,10 @@ class MessageLink extends React.Component {
 }
 
 @connect(mapChildStateToProps)
-class MessageView extends React.Component {
+export class MessageView extends React.Component {
     render() {
-        const { message, author, outgoing_to, withLinks } = this.props;
+        const { message, author, withLinks } = this.props;
+        const { outgoing_to, broadcast_to } = message;
         const message_time = moment.unix( message.timestamp );
 
         return (
@@ -147,36 +150,39 @@ class MessageView extends React.Component {
                 { outgoing_to ? (
                     <p>Sent { message_time.fromNow() } to <UserDisplay withLinks={withLinks} user={outgoing_to} 
                         /> by <UserDisplay withLinks={withLinks} user={author} /></p>
-                ) : (
-                    <p>Received { message_time.fromNow() } from <UserDisplay withLinks={withLinks} user={author} /></p>
-                ) }
+                ) : broadcast_to.length ? (
+                    <p>Broadcast (to {broadcast_to.length} users) { message_time.fromNow() } by <UserDisplay withLinks={withLinks} user={author} /></p>
+                    ) : (
+                        <p>Received { message_time.fromNow() } from <UserDisplay withLinks={withLinks} user={author} /></p>
+                    ) }
             </div>
         );
     }
 }
 
-class MessageActions extends React.Component {
+export class MessageActions extends React.Component {
     constructor( props )  {
         super( props );
         this.state = {
             open: false,
             anchorEl: null,
-            replyText: ''
+            replyText: '',
+            eventTitle: ''
         };
     }
 
-    handleOpen = event => {
+    handleOpen = ( event, openState ) => {
         this.setState({
-            open: true,
+            open: openState,
             anchorEl: event.currentTarget
         });
     }
 
-    updateText = (event) => {
-        this.setState({ 
-            replyText: event.target.value 
-        });
-    }
+    handleClose = () => this.setState( { open: false } );
+
+    updateText = (event) => this.setState({ replyText: event.target.value })
+
+    updateEventTitle = event => this.setState({ eventTitle: event.target.value })
 
     sendResponse = () => {
         const { message, postMessage } = this.props;
@@ -191,33 +197,65 @@ class MessageActions extends React.Component {
         this.setState({ replyText: '', open: false });
     }
 
+    createEventFromMessage = () => {
+        const { message, createEvent } = this.props;
+        const { eventTitle } = this.state;
+
+        createEvent({
+            name: eventTitle,
+            description: '',
+        }, message.id );
+
+        this.setState({ eventTitle: '', open: false });
+    }
+
     render() {
         const { message, author } = this.props;
-        const { open, anchorEl, replyText } = this.state;
+        const { open, anchorEl, replyText, eventTitle } = this.state;
 
         return (
             <Toolbar>
                  <ToolbarGroup>
-                     <ToolbarTitle text="Actions" />
-                     <IconButton onTouchTap={this.handleOpen}><CommunicationTextsms /></IconButton>
-                     <Popover open={open} anchorEl={anchorEl} style={ { padding: '0 10px 10px' } }>
-                         <TextField 
-                            fullWidth={true}
-                            value={replyText}
-                            onChange={this.updateText}
-                            floatingLabelText={ `Reply to ${author.name} via SMS` }
-                            multiLine={true} rows={3} rowsMax={6}
-                            />
-                        <RaisedButton 
-                            label="Send Message" 
-                            primary={true} 
-                            disabled={! replyText.length}
-                            onTouchTap={this.sendResponse}
-                            />
+                     <ToolbarTitle text="Message Actions" />
+                     <ToolbarSeparator />
+                     <IconButton tooltip="Respond to Sender" onTouchTap={e => this.handleOpen(e, 'respond')}><CommunicationTextsms /></IconButton>
+                     <IconButton tooltip="Create Event" onTouchTap={e => this.handleOpen(e, 'create-event')}><ActionEvent /></IconButton>
+                     <Popover open={!!open} anchorEl={anchorEl} style={ { padding: '0 10px 10px' } } onRequestClose={this.handleClose}>
+                         <Menu style={ open !== 'respond' ? { display: 'none' } : {} }>
+                            <Subheader>Respond to Message via SMS:</Subheader>
+                            <TextField 
+                                fullWidth={true}
+                                value={replyText}
+                                onChange={this.updateText}
+                                floatingLabelText={ `Compose reply to ${author.name ? author.name : author.phone}` }
+                                multiLine={true} rows={3} rowsMax={6}
+                                />
+                            <RaisedButton 
+                                label="Send Message" 
+                                primary={true} 
+                                disabled={! replyText.length}
+                                onTouchTap={this.sendResponse}
+                                />
+                         </Menu>
+                        <Menu style={ open !== 'create-event' ? { display: 'none' } : {} }>
+                            <Subheader>Create New Event:</Subheader>
+                            <TextField 
+                                fullWidth={true}
+                                value={eventTitle}
+                                onChange={this.updateEventTitle}
+                                floatingLabelText="Event name"
+                                multiLine={true} rows={3} rowsMax={6}
+                                />
+                            <RaisedButton 
+                                label="Create Event" 
+                                primary={true} 
+                                disabled={! eventTitle.length}
+                                onTouchTap={this.createEventFromMessage}
+                                />
+                        </Menu>
                     </Popover>
                 </ToolbarGroup>
             </Toolbar>
         );
     }
 }
-export default MessageDetailView;

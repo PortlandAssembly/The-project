@@ -10,7 +10,8 @@ from sqlalchemy import (
     ForeignKey,
     DateTime,
     Sequence,
-    Float
+    Float,
+    Enum
 )
 from index import db, bcrypt
 
@@ -20,6 +21,8 @@ class User(db.Model):
     id       = db.Column(db.Integer(), primary_key = True)
     name     = db.Column(db.String(255))
     email    = db.Column(db.String(255), unique    = True)
+    active   = db.Column(db.Boolean())
+    role     = db.Column(db.Enum("responder", "verifier", "admin"))
     password = db.Column(db.String(255))
     phone    = db.Column(db.String(15))
     last_msg = db.Column(db.Integer(), ForeignKey('message.id'))
@@ -29,9 +32,10 @@ class User(db.Model):
         backref="user"
         )
 
-    def __init__(self, email="", password="", phone="", name=""):
+    def __init__(self, email="", password="", phone="", name="", role="responder"):
         self.name = name
         self.email = email
+        self.role = role
         self.active = True
         self.password = User.hashed_password(password) if password else None
         self.phone = phone
@@ -41,17 +45,19 @@ class User(db.Model):
             'id':    self.id,
             'name':  self.name,
             'phone': self.phone,
+            'role':  self.role,
             'email': self.email,
-            'tags': [tag.tag_id for tag in self.tags]
+            'tags': [tag.tag_id for tag in self.tags],
+            'last_msg': self.last_msg
         }
 
     def update(self, values):
-        # remove existing tags before updating
-        UserTags.query.filter_by(user_id=self.id).delete()
-        db.session.commit()
-        # add all tags selected
         for key, value in values.iteritems():
             if key=='tags':
+                # remove existing tags before updating
+                UserTags.query.filter_by(user_id=self.id).delete()
+                db.session.commit()
+                # add all tags selected
                 for tag_id in value:
                     tag = UserTags(user_id=self.id, tag_id=tag_id)
                     db.session.add(tag)
@@ -95,6 +101,7 @@ class User(db.Model):
             db.session.commit()
         return user
 
+
 class UserTags(db.Model):
     __tablename__ = "user_tag"
     id       = db.Column(db.Integer(), primary_key = True)
@@ -135,30 +142,36 @@ class Tag(db.Model):
 class Message(db.Model):
     __tablename__ = "message"
     id            = db.Column(db.Integer(), primary_key = True)
-    event         = db.Column(db.Integer())
+    event         = db.Column(db.Integer(), nullable=True)
     text          = db.Column(db.String(1024))
-    author        = db.Column(db.Integer,ForeignKey('user.id'))
-    outgoing_to   = db.Column(db.Integer,ForeignKey('user.id'))
+    author        = db.Column(db.Integer,ForeignKey('user.id'), nullable=False)
+    outgoing_to   = db.Column(db.Integer,ForeignKey('user.id'), nullable=True)
+    broadcast_to  = db.Column(db.String(2048)) # XXX? in Postgres this would work better as an array, 
+                                               #  but for now, I'm just storing it as a string, and splitting
+                                               # it on output since I'm trying to get as far as possible without
+                                               # requiring Postgres
     timestamp     = db.Column(db.Integer())
-    parent        = db.Column(db.Integer,ForeignKey('message.id'))
+    parent        = db.Column(db.Integer,ForeignKey('message.id'), nullable=True)
 
-    def __init__(self, text="", author="", outgoing_to="", timestamp="", parent="", event=""):
+    def __init__(self, text="", author="", outgoing_to=None, broadcast_to="", timestamp="", parent=None, event=None):
         self.text = text
         self.author = author
         self.outgoing_to = outgoing_to
+        self.broadcast_to = broadcast_to
         self.timestamp = timestamp
         self.parent = parent
         self.event = event
 
     def as_dict(self): 
         return {
-            'id':          self.id,
-            'text':        self.text,
-            'author':      self.author,
-            'outgoing_to': self.outgoing_to,
-            'timestamp':   self.timestamp,
-            'parent':      self.parent,
-            'event':       self.event,
+            'id':           self.id,
+            'text':         self.text,
+            'author':       self.author,
+            'outgoing_to':  self.outgoing_to,
+            'broadcast_to': filter(None, self.broadcast_to.split('|')),
+            'timestamp':    self.timestamp,
+            'parent':       self.parent,
+            'event':        self.event,
         }
 
     def get_responses():
@@ -171,3 +184,28 @@ class Message(db.Model):
     @staticmethod
     def get_for_event(event):
         return User.query.filter_by(event=event.id,parent=null)
+
+class Event(db.Model):
+    __tablename__ = "event"
+    id            = db.Column(db.Integer(), primary_key = True)
+    name          = db.Column(db.String(255))
+    description   = db.Column(db.Text())
+    verified      = db.Column(db.Boolean)
+    active        = db.Column(db.Boolean)
+
+    def __init__(self, name="", description=""):
+        self.name = name
+        self.description = description
+        self.verified = False
+        self.active = True
+
+    def as_dict(self):
+        return {
+            'id':          self.id,
+            'name':        self.name,
+            'description': self.description,
+            'verified':    self.verified,
+            'active':      self.active,
+        }
+
+

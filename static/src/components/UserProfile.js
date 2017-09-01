@@ -1,7 +1,7 @@
 import React from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import { browserHistory } from 'react-router';
+import { Link, browserHistory } from 'react-router';
 import { List, ListItem, } from 'material-ui/List';
 import Chip from 'material-ui/Chip';
 import TextField from 'material-ui/TextField';
@@ -43,7 +43,8 @@ class UserProfile extends React.Component { // eslint-disable-line react/prefer-
         this.setState({ user });
     }
 
-    handleChangeSelectField = (key, event, value, index ) => {
+    handleChangeSelectField = (key, event, index, value ) => {
+        console.log( value, index, key );
         const { user }  = this.props;
         user[ key ] = value;
         user.isDirty = true;
@@ -84,15 +85,18 @@ class UserProfile extends React.Component { // eslint-disable-line react/prefer-
                     onChange={this.handleChangeTextField.bind(this,'email')}
                     floatingLabelText="Email Address" />
                 <SelectField 
-                    name="role" value={user.role || 0}
+                    name="role" value={user.role || "responder"}
                     fullWidth={true}
                     onChange={this.handleChangeSelectField.bind(this,'role')} 
                     floatingLabelText="User Role" >
-                    <MenuItem value={0} primaryText="Responder" />
-                    <MenuItem value={1} primaryText="Verifier" />
-                    <MenuItem value={2} primaryText="Admin" />
+                    <MenuItem value="responder" primaryText="Responder" />
+                    <MenuItem value="verifier" primaryText="Verifier" />
+                    <MenuItem value="admin" primaryText="Admin" />
                 </SelectField>
-                <TagSelector currentTags={user.tags} availableTags={tags} 
+                <TagSelector 
+                    header="User Tags"
+                    searchLabel="Add a tag to this user"
+                    currentTags={user.tags} availableTags={tags} 
                     onUpdateTags={this.handleUpdateTags.bind(this)} />
                 <div style={{ textAlign: 'right' }} >
                     <RaisedButton 
@@ -109,6 +113,9 @@ class UserProfile extends React.Component { // eslint-disable-line react/prefer-
                         onTouchTap={() => handleUpdateUser(user)}
                         />
                 </div>
+                { user.last_msg && (
+                    <Link to={`/messages/${user.last_msg}`}>Last message</Link>
+                ) }
             </div>
         );
     }

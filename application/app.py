@@ -1,7 +1,8 @@
 from flask import request, render_template, jsonify, url_for, redirect, g
-from .models import User, Message, Tag
+from .models import User, Message, UserTags, Tag, Event
 from index import app, db
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.sql.expression import and_
 from .utils.auth import generate_token, requires_auth, verify_token
 from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
@@ -96,13 +97,17 @@ def incoming_message():
     body = request.values.get('Body', None)
     timestamp = int(time.time())
     user = User.from_number(from_number)
+    event = 0
+    if user.last_msg:
+        last_msg = Message.query.get(user.last_msg)
+        event = last_msg.event
 
     message = Message(
         text=body, 
         author=user.id, 
         timestamp=timestamp, 
         parent=user.last_msg, 
-        event=0
+        event=event
         )
     db.session.add(message)
     db.session.commit()
@@ -177,4 +182,69 @@ def send_message():
         return jsonify ({error: 'Error sending message'})
 
     return jsonify([ message.as_dict() ])
+
+@app.route("/api/broadcast", methods=['POST'])
+@requires_auth
+def send_broadcast():
+    incoming = request.get_json()
+    message_text = incoming['message_text']
+    author = g.current_user['id']
+    event = incoming['event']
+    filters = incoming['filters']
+    audience = db.session.query(User) \
+            .filter(User.phone != "") \
+            .filter(and_(User.tags.contains(UserTags.query.get(tag_filter)) for tag_filter in filters)) \
+            .all()
+
+    if message_text and event and audience:
+        message=Message(
+                text=message_text,
+                event=event,
+                author=author,
+                broadcast_to='|' + '|'.join(str(user.id) for user in audience) + '|',
+                timestamp=int(time.time())
+                )
+        db.session.add(message)
+        db.session.commit()
+        for user in audience:
+            sent_message=twilio_client.messages.create(
+                    to=user.phone,
+                    from_=os.environ['TWILIO_NUMBER'],
+                    body=message_text
+                    )
+            user.mark_last_msg(last_msg=message.id)
+
+        return jsonify([message.as_dict()])
+
+    return jsonify({'error': 'No audience selected to send to'})
+
+
+@app.route("/api/events", methods=['GET'])
+def get_events():
+    events=Event.query.all()
+    if events:
+        return jsonify([event.as_dict() for event in events])
+    else:
+        return jsonify({ 'error': 'No events yet' })
+
+@app.route("/api/event", methods=['PUT'])
+def create_event():
+    incoming = request.get_json()
+
+    try:
+        event=Event(
+            name=incoming['name'],
+            description=incoming['description'] or '',
+            )
+        db.session.add(event)
+        if incoming['message_id']:
+            message=db.session.query(Message).get(incoming["message_id"])
+            message.__setattr__('event', event.id)
+            db.session.add(message)
+            db.session.commit()
+
+    except IntegrityError:
+        return jsonify ({error: 'Error creating event'})
+
+    return get_events()
 

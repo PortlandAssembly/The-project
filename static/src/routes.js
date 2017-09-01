@@ -13,6 +13,8 @@ import Messages from './components/Messages';
 import MessageActions from './components/MessageActions';
 import Users from './components/Users';
 import UserProfile from './components/UserProfile';
+import Events from './components/Events';
+import EventDetails from './components/EventDetails';
 import Tags from './components/Tags';
 import NotFound from './components/NotFound';
 
@@ -30,6 +32,8 @@ export default (
         <Route path="messages/:messageId" component={requireAuthentication(MessageActions)} />
         <Route path="users" component={requireAuthentication(Users)} />
         <Route path="users/:userId" component={requireAuthentication(UserProfile)} />
+        <Route path="events" component={requireAuthentication(Events)} />
+        <Route path="events/:eventId" component={requireAuthentication(EventDetails)} />
         <Route path="tags" component={requireAuthentication(Tags)} />
         <Route path="*" component={DetermineAuth(NotFound)} />
     </Route>

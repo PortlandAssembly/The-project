@@ -9,7 +9,7 @@ class TagSelector extends React.Component { // eslint-disable-line react/prefer-
     }
 
     render() {
-        const { currentTags, availableTags, onUpdateTags } = this.props;
+        const { header, searchLabel, currentTags, availableTags, onUpdateTags } = this.props;
         const { searchText } = this.state;
 
         const requestDelete = tag => 
@@ -28,7 +28,7 @@ class TagSelector extends React.Component { // eslint-disable-line react/prefer-
         return (
             <div>
                 <div className="container row">
-                    <h5>User Tags</h5>
+                    <h5>{ header }</h5>
                     { currentTags.map( tag => {
                         const _tag = availableTags.find( t => t.id == tag );
                         if ( ! _tag ) {
@@ -47,7 +47,7 @@ class TagSelector extends React.Component { // eslint-disable-line react/prefer-
                     searchText={searchText}
                     onNewRequest={requestAdd}
                     onUpdateInput={updateSearchText}
-                    floatingLabelText="Add a tag to this user"
+                    floatingLabelText={searchLabel}
                     filter={AutoComplete.fuzzyFilter}
                     dataSource={autocompleteData}
                     openOnFocus={true}

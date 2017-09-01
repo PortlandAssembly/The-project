@@ -8,4 +8,3 @@ node_modules
 .idea/*
 *.pyc
 tmp
-static/dist
