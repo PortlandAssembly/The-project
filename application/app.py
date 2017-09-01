@@ -1,6 +1,6 @@
 from flask import request, render_template, jsonify, url_for, redirect, g
 from .models import User, Message, UserTags, Tag, Event
-from index import app, db
+from index import app, db, socketio
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql.expression import and_
 from .utils.auth import generate_token, requires_auth, verify_token
@@ -24,6 +24,7 @@ def any_root_path(path):
 @requires_auth
 def get_user():
     return jsonify(result=g.current_user)
+
 
 @app.route("/api/users", methods=["GET"])
 def get_users():
@@ -111,6 +112,8 @@ def incoming_message():
         )
     db.session.add(message)
     db.session.commit()
+
+    socketio.emit('new message', message.as_dict())
 
     r = MessagingResponse()
     r.message( 'Thanks for the reply.' if user.last_msg else 'Thanks for the tip.')
@@ -248,3 +251,5 @@ def create_event():
 
     return get_events()
 
+if __name__ == '__main__':
+    socketio.run(app)

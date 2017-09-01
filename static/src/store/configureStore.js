@@ -1,5 +1,7 @@
 import { createStore, applyMiddleware } from 'redux';
 import thunkMiddleware from 'redux-thunk';
+import createSocketIoMiddleware from 'redux-socket.io';
+import io from 'socket.io-client';
 import rootReducer from '../reducers';
 
 const debugware = [];
@@ -11,11 +13,14 @@ if (process.env.NODE_ENV !== 'production') {
     }));
 }
 
+const socket = io(`${document.location.protocol}//${document.domain}`);
+const socketIoMiddleware = createSocketIoMiddleware(socket, "socket/"); // All actions with "socket/" prefix will be sent to the server
+
 export default function configureStore(initialState) {
     const store = createStore(
         rootReducer,
         initialState,
-        applyMiddleware(thunkMiddleware, ...debugware)
+        applyMiddleware(thunkMiddleware, socketIoMiddleware, ...debugware)
     );
 
     if (module.hot) {
