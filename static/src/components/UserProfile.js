@@ -2,16 +2,20 @@ import React from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { Link, browserHistory } from 'react-router';
+
 import { List, ListItem, } from 'material-ui/List';
 import Chip from 'material-ui/Chip';
 import TextField from 'material-ui/TextField';
 import SelectField from 'material-ui/SelectField';
 import MenuItem from 'material-ui/MenuItem';
 import Divider from 'material-ui/Divider';
-import TagSelector from './TagSelector';
 import RaisedButton from 'material-ui/RaisedButton';
+
 import * as userActionCreators from '../actions/users';
 import * as tagsActionCreators from '../actions/tags';
+
+import TagSelector from './TagSelector';
+import UserSubscribedToggle from './UserSubscribed';
 
 function mapStateToProps(state, props) {
     const { userId } = props.params;
@@ -58,6 +62,13 @@ class UserProfile extends React.Component { // eslint-disable-line react/prefer-
         this.setState({ user });
     }
 
+    handleChangeBoolField = (key, value) => {
+        const { user } = this.props;
+        user[ key ] = value;
+        user.isDirty = true;
+        this.setState({ user })
+    }
+
     handleReset = () => console.log( 'Resetting to default values' );
 
     render() {
@@ -69,6 +80,10 @@ class UserProfile extends React.Component { // eslint-disable-line react/prefer-
             <div className="col-md-8">
                 <h1>View / Edit User</h1>
                 <Divider inset={false} />
+                <UserSubscribedToggle
+                    userSubscribed={!!user.active}
+                    onUpdateValue={this.handleChangeBoolField.bind(this, 'active')}
+                    />
                 <TextField 
                     name="name" value={user.name || ''}
                     fullWidth={true} 

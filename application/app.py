@@ -4,6 +4,8 @@ from index import app, db
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql.expression import and_
 from .utils.auth import generate_token, requires_auth, verify_token
+from .utils.msgparse import MsgParse, parse_message
+from .utils.useractions import UserActions
 from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
 import time, json, os;
@@ -102,19 +104,33 @@ def incoming_message():
         last_msg = Message.query.get(user.last_msg)
         event = last_msg.event
 
-    message = Message(
-        text=body, 
-        author=user.id, 
-        timestamp=timestamp, 
-        parent=user.last_msg, 
-        event=event
-        )
-    db.session.add(message)
-    db.session.commit()
+    msg_handler = parse_message(body)
+    if msg_handler['handled']:
+        user_actions = UserActions(
+                    user=user,
+                    event=event,
+                    timestamp=timestamp,
+                    )
+        action = getattr(user_actions, msg_handler['action'], None)
+        if callable(action):
+            action()
+        response = msg_handler['response'] 
+    else:
+        message = Message(
+            text=body, 
+            author=user.id, 
+            timestamp=timestamp, 
+            parent=user.last_msg, 
+            event=event
+            )
+        db.session.add(message)
+        db.session.commit()
+        response = 'Thanks for the reply.' if user.last_msg else 'Thanks for the tip.'
 
-    r = MessagingResponse()
-    r.message( 'Thanks for the reply.' if user.last_msg else 'Thanks for the tip.')
-    return str(r)
+    if response:
+        r = MessagingResponse()
+        r.message( 'Thanks for the reply.' if user.last_msg else 'Thanks for the tip.')
+        return str(r)
 
 @app.route("/api/tags", methods=['GET'])
 def get_tags():
