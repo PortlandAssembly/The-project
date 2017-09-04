@@ -35,8 +35,16 @@ export class UserSubscribedIndicator extends React.Component {
     render() {
         const { userSubscribed } = this.props;
 
+        const styleProps = {
+            style: {
+                float: 'right',
+                margin: '0 -36px 0 24px',
+                color: userSubscribed ? cyan500 : gray500,
+            }
+        };
+
         return userSubscribed ? 
-            ( <ActionAlarmOn color={cyan500} /> ) :
-            ( <ActionAlarmOff color={gray500} /> );
+            ( <ActionAlarmOn {...styleProps} /> ) :
+            ( <ActionAlarmOff {...styleProps} /> );
     }
 }
