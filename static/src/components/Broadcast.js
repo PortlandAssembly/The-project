@@ -70,6 +70,7 @@ export default class Broadcast extends React.Component {
 
         const audience = users
             .filter( user => ( !! user.phone ) )
+            .filter( user => user.active )
             .filter( user => ! verifiers_only || 'verifier' === user.role )
             .filter( user => {
                 for ( let currentTag of currentTags ) {

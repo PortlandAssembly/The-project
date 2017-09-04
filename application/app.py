@@ -112,7 +112,15 @@ def incoming_message():
     # related to the samne event.
     if user.last_msg:
         last_msg = Message.query.get(user.last_msg)
-        event = last_msg.event
+        if last_msg.event:
+            """ If the event isn't active any more, consideer this a new message. """
+            last_msg_event = Event.query.get(last_msg.event)
+            if last_msg_event and last_msg_event.active:
+                event = last_msg_event.id
+            else:
+                last_msg = None
+                event = None
+
 
     # Parse the message for special commands (see MsgParse class)
     msg_handler = parse_message(body)
@@ -221,6 +229,7 @@ def send_broadcast():
     filters = incoming['filters']
     audience = db.session.query(User) \
             .filter(User.phone != "") \
+            .filter(User.active) \
             .filter(and_(User.tags.contains(UserTags.query.get(tag_filter)) for tag_filter in filters)) \
             .all()
 
