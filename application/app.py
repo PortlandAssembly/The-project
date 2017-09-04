@@ -285,3 +285,9 @@ def create_event():
 
     return get_events()
 
+@app.route("/api/event/<int:event_id>", methods=['POST'])
+def update_event(event_id):
+    event = db.session.query(Event).get(event_id)
+    incoming = request.get_json()
+    event = event.update(values=incoming["event"])
+    return get_events() if event else jsonify({"error": "Error updating event"})

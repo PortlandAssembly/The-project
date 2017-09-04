@@ -214,4 +214,14 @@ class Event(db.Model):
             'active':      self.active,
         }
 
+    def update(self, values):
+        for key, value in values.iteritems():
+            self.__setattr__(key, value)
+        
+        try:
+            db.session.add(self)
+            db.session.commit()
+            return self
+        except IntegrityError:
+            return None
 
