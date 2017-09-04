@@ -95,15 +95,26 @@ def get_messages():
 
 @app.route("/api/message", methods=['POST'])
 def incoming_message():
+    """ Respond to an incoming SMS message.
+
+        First, checks to see if the message can be recognized as one of the
+        commands in the SMS API and responds appropriately if so. If not, this
+        will try to determine whether the message is in response to another
+        message or in a current event, in order to determine how to thread the
+        message.  """
     from_number = request.values.get('From', None)
     body = request.values.get('Body', None)
     timestamp = int(time.time())
     user = User.from_number(from_number)
     event = 0
+    # The ID of the last message sent to the user is stored on the user object.
+    # If that exists and refers to an active event, we assume this message
+    # related to the samne event.
     if user.last_msg:
         last_msg = Message.query.get(user.last_msg)
         event = last_msg.event
 
+    # Parse the message for special commands (see MsgParse class)
     msg_handler = parse_message(body)
     if msg_handler['handled']:
         user_actions = UserActions(
@@ -111,10 +122,10 @@ def incoming_message():
                     event=event,
                     timestamp=timestamp,
                     )
+        response = msg_handler['response'] 
         action = getattr(user_actions, msg_handler['action'], None)
         if callable(action):
             action()
-        response = msg_handler['response'] 
     else:
         message = Message(
             text=body, 
@@ -127,9 +138,10 @@ def incoming_message():
         db.session.commit()
         response = 'Thanks for the reply.' if user.last_msg else 'Thanks for the tip.'
 
+    # Return a response if the message warrants one.
     if response:
         r = MessagingResponse()
-        r.message( 'Thanks for the reply.' if user.last_msg else 'Thanks for the tip.')
+        r.message(response)
         return str(r)
 
 @app.route("/api/tags", methods=['GET'])
