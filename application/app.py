@@ -114,12 +114,12 @@ def incoming_message():
         last_msg = Message.query.get(user.last_msg)
         if last_msg.event:
             """ If the event isn't active any more, consideer this a new message. """
-            last_msg_event = Event.query.get(last_msg.event)
-            if last_msg_event and last_msg_event.active:
+            e = Event.query.get(last_msg.event)
+            if e and e.active:
                 event = last_msg_event.id
             else:
-                last_msg = None
-                event = None
+                user.last_msg = 0
+                event = 0
 
 
     # Parse the message for special commands (see MsgParse class)
