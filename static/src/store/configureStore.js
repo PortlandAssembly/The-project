@@ -13,14 +13,14 @@ if (process.env.NODE_ENV !== 'production') {
     }));
 }
 
-const socket = io(`${document.location.protocol}//${document.domain}`);
-const socketIoMiddleware = createSocketIoMiddleware(socket, "socket/"); // All actions with "socket/" prefix will be sent to the server
+const socket = io.connect();
+const socketIoMiddleware = createSocketIoMiddleware(socket); // All actions with "socket/" prefix will be sent to the server
 
 export default function configureStore(initialState) {
     const store = createStore(
         rootReducer,
         initialState,
-        applyMiddleware(thunkMiddleware, socketIoMiddleware, ...debugware)
+        applyMiddleware(socketIoMiddleware, thunkMiddleware, ...debugware)
     );
 
     if (module.hot) {

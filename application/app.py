@@ -1,6 +1,8 @@
 from flask import request, render_template, jsonify, url_for, redirect, g
+from flask_socketio import SocketIO, emit, disconnect
+from threading import Lock
 from .models import User, Message, UserTags, Tag, Event
-from index import app, db, socketio
+from index import app, db
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql.expression import and_
 from .utils.auth import generate_token, requires_auth, verify_token
@@ -10,10 +12,19 @@ import time, json, os;
 
 twilio_client = Client(os.environ['TWILIO_ACCOUNT_SID'], os.environ['TWILIO_AUTH_TOKEN'])
 
+async_mode = 'threading'
+socketio = SocketIO(app, async_mode=async_mode)
+thread = None
+thread_lock = Lock()
+
 @app.route('/', methods=['GET'])
 def index():
     return render_template('index.html')
 
+@socketio.on('connect')
+def socket_connect():
+    #TODO something here probably, maybe authenticate?
+    pass
 
 @app.route('/<path:path>', methods=['GET'])
 def any_root_path(path):
@@ -71,6 +82,7 @@ def get_token():
     if user:
         return jsonify(token=generate_token(user))
 
+    disconnect()
     return jsonify(error=True), 403
 
 
@@ -113,7 +125,7 @@ def incoming_message():
     db.session.add(message)
     db.session.commit()
 
-    socketio.emit('new message', message.as_dict())
+    socketio.emit('action', {"type": 'NEW_MESSAGE_NOTIFICATION', "data": { "message": message.as_dict()}})
 
     r = MessagingResponse()
     r.message( 'Thanks for the reply.' if user.last_msg else 'Thanks for the tip.')
