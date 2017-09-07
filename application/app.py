@@ -82,7 +82,7 @@ def get_token():
     if user:
         return jsonify(token=generate_token(user))
 
-    disconnect()
+    socketio.disconnect()
     return jsonify(error=True), 403
 
 
@@ -125,7 +125,7 @@ def incoming_message():
     db.session.add(message)
     db.session.commit()
 
-    socketio.emit('action', {"type": 'NEW_MESSAGE_NOTIFICATION', "data": { "message": message.as_dict()}})
+    socketio.emit('action', {"type": 'NEW_MESSAGE_NOTIFICATION', "payload": { "message": message.as_dict()}})
 
     r = MessagingResponse()
     r.message( 'Thanks for the reply.' if user.last_msg else 'Thanks for the tip.')
@@ -264,6 +264,7 @@ def create_event():
     return get_events()
 
 def shutdown_server():
+    """ Shut down the dev server by making a request to /api/shutdown. """
     func = request.environ.get('werkzeug.server.shutdown')
     if func is None:
         raise RuntimeError('Not running with the Werkzeug Server')

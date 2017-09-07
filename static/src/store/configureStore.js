@@ -13,8 +13,8 @@ if (process.env.NODE_ENV !== 'production') {
     }));
 }
 
-const socket = io.connect();
-const socketIoMiddleware = createSocketIoMiddleware(socket); // All actions with "socket/" prefix will be sent to the server
+const socket = io.connect(`//${document.domain}:${location.port}`);
+const socketIoMiddleware = createSocketIoMiddleware(socket); 
 
 export default function configureStore(initialState) {
     const store = createStore(
