@@ -2,11 +2,15 @@ import React from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { Link } from 'react-router';
+
 import { List, ListItem } from 'material-ui/List';
 import Divider from 'material-ui/Divider';
+import Badge from 'material-ui/Badge';
+
+import * as moment from 'moment';
+
 import * as messageActionCreators from '../actions/messages';
 import * as userActionCreators from '../actions/users';
-import * as moment from 'moment';
 
 function mapStateToProps(state) {
     return {
@@ -41,6 +45,11 @@ class Messages extends React.Component { // eslint-disable-line react/prefer-sta
         return r.length + r.map( m => this.countReplies(m) ).reduce( (pv, cv) => pv + cv, 0 )
     }
 
+    countUnread( msg ) {
+        let r = this.getReplies( msg );
+        return r.map( m => this.countUnread(m) ).reduce( (pv, cv) => pv + cv, ( msg.unread ? 1 : 0 )  )
+    }
+
     render() {
         const { isFetching, loaded, messages, users, allMessages } = this.props;
         return (
@@ -50,12 +59,16 @@ class Messages extends React.Component { // eslint-disable-line react/prefer-sta
                 <List> 
                     { messages.map( message => {
                         let replies = this.countReplies( message );
+                        let unreadReplies = this.countUnread( message );
                         let message_time = moment.unix( message.timestamp );
                         let user = users.find( u => u.id == parseInt( message.author ) );
                         return (
                            <ListItem key={ message.id }
                                 primaryText={
-                                    <Link to={`/messages/${message.id}`}>{message.text}</Link>
+                                    <div>
+                                        { (unreadReplies) ? ( <Badge badgeContent={unreadReplies} primary={true} /> ) : '' }
+                                        <Link to={`/messages/${message.id}`}>{message.text}</Link>
+                                    </div>
                                 }
                                 secondaryText={
                                     <p>
@@ -63,8 +76,8 @@ class Messages extends React.Component { // eslint-disable-line react/prefer-sta
                                         <span style={{ float: 'right' }}>from { user.name ? user.name : user.phone }</span>
                                     </p>
                                 } />
-                        ) }
-                     ) }
+                          );
+                    } ) }
                 </List>
                 <hr />
             </div>

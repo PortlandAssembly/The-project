@@ -1,4 +1,6 @@
 from flask import request, render_template, jsonify, url_for, redirect, g
+from flask_socketio import SocketIO, emit, disconnect
+from threading import Lock
 from .models import User, Message, UserTags, Tag, Event
 from index import app, db
 from sqlalchemy.exc import IntegrityError
@@ -10,10 +12,19 @@ import time, json, os;
 
 twilio_client = Client(os.environ['TWILIO_ACCOUNT_SID'], os.environ['TWILIO_AUTH_TOKEN'])
 
+async_mode = 'threading'
+socketio = SocketIO(app, async_mode=async_mode)
+thread = None
+thread_lock = Lock()
+
 @app.route('/', methods=['GET'])
 def index():
     return render_template('index.html')
 
+@socketio.on('connect')
+def socket_connect():
+    #TODO something here probably, maybe authenticate?
+    pass
 
 @app.route('/<path:path>', methods=['GET'])
 def any_root_path(path):
@@ -24,6 +35,7 @@ def any_root_path(path):
 @requires_auth
 def get_user():
     return jsonify(result=g.current_user)
+
 
 @app.route("/api/users", methods=["GET"])
 def get_users():
@@ -70,6 +82,7 @@ def get_token():
     if user:
         return jsonify(token=generate_token(user))
 
+    socketio.disconnect()
     return jsonify(error=True), 403
 
 
@@ -111,6 +124,8 @@ def incoming_message():
         )
     db.session.add(message)
     db.session.commit()
+
+    socketio.emit('action', {"type": 'NEW_MESSAGE_NOTIFICATION', "payload": { "message": message.as_dict()}})
 
     r = MessagingResponse()
     r.message( 'Thanks for the reply.' if user.last_msg else 'Thanks for the tip.')
@@ -248,3 +263,17 @@ def create_event():
 
     return get_events()
 
+def shutdown_server():
+    """ Shut down the dev server by making a request to /api/shutdown. """
+    func = request.environ.get('werkzeug.server.shutdown')
+    if func is None:
+        raise RuntimeError('Not running with the Werkzeug Server')
+    func()
+
+@app.route("/api/shutdown", methods=['POST'])
+def shutdown():
+    shutdown_server()
+    return 'Server shutting down'
+
+if __name__ == '__main__':
+    socketio.run(app)
