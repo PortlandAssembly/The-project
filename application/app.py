@@ -3,7 +3,7 @@ from .models import User, Message, UserTags, Tag, Event
 from index import app, db
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql.expression import and_
-from .utils.auth import generate_token, requires_auth, verify_token
+from .utils.auth import generate_token, requires_auth, verify_token, validate_twilio_request
 from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
 import time, json, os;
@@ -26,6 +26,7 @@ def get_user():
     return jsonify(result=g.current_user)
 
 @app.route("/api/users", methods=["GET"])
+@requires_auth
 def get_users():
     users = User.query.all()
     if users:
@@ -35,13 +36,18 @@ def get_users():
 
 
 @app.route("/api/create_user", methods=["POST"])
+@requires_auth
 def create_user():
     incoming = request.get_json()
-    user = User(
-        email=incoming["email"],
-        password=incoming["password"],
-        phone=None
-    )
+    try:
+        user = User(
+            email=incoming["email"],
+            password=incoming["password"],
+            phone=None
+        )
+    except:
+        return jsonify(message="Malformed request"), 400
+
     db.session.add(user)
 
     try:
@@ -57,16 +63,25 @@ def create_user():
     )
 
 @app.route("/api/user/<int:user_id>", methods=["POST"])
+@requires_auth
 def update_user( user_id ):
     user = db.session.query(User).get(user_id)
     incoming = request.get_json()
-    user = user.update(values=incoming["user"])
+    try:
+        user = user.update(values=incoming["user"])
+    except:
+        return jsonify(message="Malformed request"), 400
+    
     return get_users() if user else jsonify({"error": "Error updating user record"})
 
 @app.route("/api/get_token", methods=["POST"])
 def get_token():
     incoming = request.get_json()
-    user = User.get_user_with_email_and_password(incoming["email"], incoming["password"])
+    try:
+        user = User.get_user_with_email_and_password(incoming["email"], incoming["password"])
+    except:
+        return jsonify(message="Malformed request"), 400
+        
     if user:
         return jsonify(token=generate_token(user))
 
@@ -76,7 +91,10 @@ def get_token():
 @app.route("/api/is_token_valid", methods=["POST"])
 def is_token_valid():
     incoming = request.get_json()
-    is_valid = verify_token(incoming["token"])
+    try:
+        is_valid = verify_token(incoming["token"])
+    except:
+        return jsonify(message="Malformed request"), 400
 
     if is_valid:
         return jsonify(token_is_valid=True)
@@ -84,6 +102,7 @@ def is_token_valid():
         return jsonify(token_is_valid=False), 403
 
 @app.route("/api/messages", methods=['GET'])
+@requires_auth
 def get_messages():
     messages = Message.query.order_by(Message.timestamp)
     if messages:
@@ -92,6 +111,7 @@ def get_messages():
         return jsonify({ error: 'No Messages yet' })
 
 @app.route("/api/message", methods=['POST'])
+@validate_twilio_request
 def incoming_message():
     from_number = request.values.get('From', None)
     body = request.values.get('Body', None)
@@ -117,6 +137,7 @@ def incoming_message():
     return str(r)
 
 @app.route("/api/tags", methods=['GET'])
+@requires_auth
 def get_tags():
     tags = Tag.query.order_by(Tag.tag_type, Tag.tag_name)
     if tags:
@@ -125,23 +146,29 @@ def get_tags():
         return jsonify({error: 'No Tags yet'})
 
 @app.route("/api/create_tag", methods=['POST'])
+@requires_auth
 def create_tag():
     incoming = request.get_json()
-    tag = Tag(
-        tag_type=incoming['tag_type'],
-        tag_name=incoming['tag_name'],
-    )
+    try:
+        tag = Tag(
+            tag_type=incoming['tag_type'],
+            tag_name=incoming['tag_name'],
+        )
+    except:
+        return jsonify(message="Malformed request"), 400
+
     db.session.add(tag)
     db.session.commit()
 
     return get_tags()
 
 @app.route("/api/tag/<int:tag_id>", methods=['POST','DELETE'])
+@requires_auth
 def delete_tag(tag_id):
     tag = Tag.query.filter_by(id=tag_id).first()
 
     if tag:
-        db.session.delete( tag )
+        db.session.delete(tag)
 
     db.session.commit()
 
@@ -151,9 +178,12 @@ def delete_tag(tag_id):
 @requires_auth
 def send_message():
     incoming = request.get_json()
-    to = incoming['to']
-    message_text = incoming['message_text']
-    in_response_to = incoming['in_response_to']
+    try:
+        to = incoming['to']
+        message_text = incoming['message_text']
+        in_response_to = incoming['in_response_to']
+    except:
+        return jsonify(message="Malformed request"), 400
 
     to_user = db.session.query(User).get(to)
     in_response_to_message = db.session.query(Message).get(in_response_to)
@@ -187,10 +217,14 @@ def send_message():
 @requires_auth
 def send_broadcast():
     incoming = request.get_json()
-    message_text = incoming['message_text']
+    try:
+        message_text = incoming['message_text']
+        event = incoming['event']
+        filters = incoming['filters']
+    except:
+        return jsonify(message="Malformed request"), 400
+
     author = g.current_user['id']
-    event = incoming['event']
-    filters = incoming['filters']
     audience = db.session.query(User) \
             .filter(User.phone != "") \
             .filter(and_(User.tags.contains(UserTags.query.get(tag_filter)) for tag_filter in filters)) \
@@ -220,6 +254,7 @@ def send_broadcast():
 
 
 @app.route("/api/events", methods=['GET'])
+@requires_auth
 def get_events():
     events=Event.query.all()
     if events:
@@ -228,6 +263,7 @@ def get_events():
         return jsonify({ 'error': 'No events yet' })
 
 @app.route("/api/event", methods=['PUT'])
+@requires_auth
 def create_event():
     incoming = request.get_json()
 
@@ -244,7 +280,9 @@ def create_event():
             db.session.commit()
 
     except IntegrityError:
-        return jsonify ({error: 'Error creating event'})
+        return jsonify({error: 'Error creating event'})
+    except KeyError:
+        return jsonify(message="Malformed request"), 400
 
     return get_events()
 
