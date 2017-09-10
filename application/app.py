@@ -25,6 +25,7 @@ def any_root_path(path):
 def get_user():
     return jsonify(result=g.current_user)
 
+
 @app.route("/api/users", methods=["GET"])
 @requires_auth
 def get_users():
@@ -36,7 +37,7 @@ def get_users():
 
 
 @app.route("/api/create_user", methods=["POST"])
-@requires_auth
+# TODO: Add @requires_auth once method is possible
 def create_user():
     incoming = request.get_json()
     try:
@@ -62,10 +63,13 @@ def create_user():
         token=generate_token(new_user)
     )
 
+
 @app.route("/api/user/<int:user_id>", methods=["POST"])
 @requires_auth
-def update_user( user_id ):
+def update_user(user_id):
     user = db.session.query(User).get(user_id)
+    if not user:
+        return jsonify(message="Error updating user record"), 400
     incoming = request.get_json()
     try:
         user = user.update(values=incoming["user"])
@@ -73,6 +77,7 @@ def update_user( user_id ):
         return jsonify(message="Malformed request"), 400
     
     return get_users() if user else jsonify({"error": "Error updating user record"})
+
 
 @app.route("/api/get_token", methods=["POST"])
 def get_token():
@@ -101,6 +106,7 @@ def is_token_valid():
     else:
         return jsonify(token_is_valid=False), 403
 
+
 @app.route("/api/messages", methods=['GET'])
 @requires_auth
 def get_messages():
@@ -110,11 +116,14 @@ def get_messages():
     else:
         return jsonify({ error: 'No Messages yet' })
 
+
 @app.route("/api/message", methods=['POST'])
 @validate_twilio_request
 def incoming_message():
     from_number = request.values.get('From', None)
     body = request.values.get('Body', None)
+    if (not from_number) or (not body):
+        return jsonify(message="Malformed request"), 400
     timestamp = int(time.time())
     user = User.from_number(from_number)
     event = 0
@@ -133,7 +142,7 @@ def incoming_message():
     db.session.commit()
 
     r = MessagingResponse()
-    r.message( 'Thanks for the reply.' if user.last_msg else 'Thanks for the tip.')
+    r.message('Thanks for the reply.' if user.last_msg else 'Thanks for the tip.')
     return str(r)
 
 @app.route("/api/tags", methods=['GET'])
@@ -144,6 +153,7 @@ def get_tags():
         return jsonify([tag.as_dict() for tag in tags])
     else:
         return jsonify({error: 'No Tags yet'})
+
 
 @app.route("/api/create_tag", methods=['POST'])
 @requires_auth
@@ -162,6 +172,7 @@ def create_tag():
 
     return get_tags()
 
+
 @app.route("/api/tag/<int:tag_id>", methods=['POST','DELETE'])
 @requires_auth
 def delete_tag(tag_id):
@@ -173,6 +184,7 @@ def delete_tag(tag_id):
     db.session.commit()
 
     return get_tags()
+
 
 @app.route("/api/outgoing", methods=['POST'])
 @requires_auth
