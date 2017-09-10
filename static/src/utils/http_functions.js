@@ -82,7 +82,7 @@ export function update_tag(tag) {
 }
 
 export function get_all_events() {
-    return axios.get('/api/events', {}, authHeader());
+    return axios.get('/api/events', authHeader());
 }
 
 export function create_event(event, message_id) {
