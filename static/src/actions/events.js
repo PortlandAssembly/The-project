@@ -27,7 +27,7 @@ export function updateEventRequest() {
     };
 }
 
-export function fetchEvents(token) {
+export function fetchEvents() {
     return (dispatch) => {
         dispatch(fetchEventsRequest());
         get_all_events()
@@ -44,7 +44,7 @@ export function fetchEvents(token) {
 export function createEvent(event, message_id) {
     return (dispatch) => {
         dispatch(updateEventRequest());
-        create_event( event, message_id )
+        create_event(event, message_id)
             .then(parseJSON)
             .then(response => dispatch(receiveEvents(response)))
             .catch(console.log);

@@ -18,10 +18,10 @@ export function fetchProtectedDataRequest() {
     };
 }
 
-export function fetchProtectedData(token) {
+export function fetchProtectedData() {
     return (dispatch) => {
         dispatch(fetchProtectedDataRequest());
-        data_about_user(token)
+        data_about_user()
             .then(parseJSON)
             .then(response => {
                 dispatch(receiveProtectedData(response.result));

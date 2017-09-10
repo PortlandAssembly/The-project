@@ -29,10 +29,10 @@ export function updateUserRequest() {
     };
 }
 
-export function fetchUsers(token) {
+export function fetchUsers() {
     return (dispatch) => {
         dispatch(fetchUsersRequest());
-        get_all_users(token)
+        get_all_users()
             .then(parseJSON)
             .then(response => {
                 dispatch(receiveUsers(response));
@@ -43,7 +43,7 @@ export function fetchUsers(token) {
     };
 }
 
-export function handleUpdateUser(user, token) {
+export function handleUpdateUser(user) {
     return (dispatch) => {
         dispatch(updateUserRequest());
         update_user(user)
