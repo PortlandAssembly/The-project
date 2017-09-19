@@ -109,14 +109,14 @@ def incoming_message():
     event = 0
     # The ID of the last message sent to the user is stored on the user object.
     # If that exists and refers to an active event, we assume this message
-    # related to the samne event.
+    # related to the same event.
     if user.last_msg:
         last_msg = Message.query.get(user.last_msg)
-        if last_msg.event:
+        if last_msg and last_msg.event:
             """ If the event isn't active any more, consideer this a new message. """
             e = Event.query.get(last_msg.event)
             if e and e.active:
-                event = last_msg_event.id
+                event = e.id
             else:
                 user.last_msg = 0
                 event = 0
@@ -287,7 +287,10 @@ def create_event():
 
 @app.route("/api/event/<int:event_id>", methods=['POST'])
 def update_event(event_id):
-    event = db.session.query(Event).get(event_id)
-    incoming = request.get_json()
-    event = event.update(values=incoming["event"])
-    return get_events() if event else jsonify({"error": "Error updating event"})
+    try:
+        event = db.session.query(Event).get(event_id)
+        incoming = request.get_json()
+        event = event.update(values=incoming["event"])
+        return get_events() if event else jsonify(message="Error updating event")
+    except:
+        return jsonify(message="Malformed request"), 400

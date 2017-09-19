@@ -3,7 +3,7 @@ from cmd import Cmd
 class MsgParse(Cmd):
 
     def precmd(self, line):
-        return line.lower()
+        return line.strip().lower()
 
     def do_help(self, line):
         return {
