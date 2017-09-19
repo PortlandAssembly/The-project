@@ -1,8 +1,8 @@
 import React from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import { MessageView, MessageActions } from './MessageActions';
 import { Link } from 'react-router';
+
 import { List, ListItem } from 'material-ui/List';
 import Paper from 'material-ui/Paper';
 import Divider from 'material-ui/Divider';
@@ -13,11 +13,15 @@ import IconButton from 'material-ui/IconButton';
 import { Menu, MenuItem } from 'material-ui/Menu';
 import TextField from 'material-ui/TextField';
 import RaisedButton from 'material-ui/RaisedButton';
-import UserDisplay from './UserDisplay';
+
 import * as messageActionCreators from '../actions/messages';
 import * as eventActionCreators from '../actions/events';
 import * as userActionCreators from '../actions/users';
+
+import { MessageView, MessageActions } from './MessageActions';
+import UserDisplay from './UserDisplay';
 import Broadcast from './Broadcast';
+import EventStatusToggle from './EventStatus';
 
 function mapStateToProps(state, props) {
     const { eventId } = props.params;
@@ -45,6 +49,12 @@ class EventDetails extends React.Component { // eslint-disable-line react/prefer
         fetchUsers();
     }
 
+    handleUpdateValue = (newStatus) => {
+        const { event, updateEvent } = this.props;
+        event.active = newStatus;
+        updateEvent(event);
+    }
+
     render() {
         const { isFetching, loaded, event, eventMessages, users, postMessage  } = this.props;
 
@@ -61,6 +71,7 @@ class EventDetails extends React.Component { // eslint-disable-line react/prefer
                 <h1>Event Details</h1>
                 <Divider inset={false} />
                 <h2>{event.name}</h2>
+                <EventStatusToggle eventStatus={event.active} onUpdateValue={this.handleUpdateValue.bind(this)} />
                 <p>{event.description}</p>
                 { ( ! eventMessages.length ) && ( <p>No messages associated with this event yet.</p> ) }
                 { eventMessages.map( message => {

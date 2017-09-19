@@ -2,10 +2,15 @@ import React from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { browserHistory, Link } from 'react-router';
+import * as moment from 'moment';
+
 import { List, ListItem } from 'material-ui/List';
 import Divider from 'material-ui/Divider';
+
 import * as actionCreators from '../actions/users';
-import * as moment from 'moment';
+
+import { UserSubscribedIndicator } from './UserSubscribed';
+
 
 function mapStateToProps(state) {
     return {
@@ -36,12 +41,12 @@ class Users extends React.Component { // eslint-disable-line react/prefer-statel
                     { users.map( user => {
                         return (
                            <ListItem key={ user.id }
-                                primaryText={ (
-                                    <Link to={`/users/${user.id}`}>{ user.name || user.phone || user.email }</Link>
-                                ) }
+                                onClick={() => browserHistory.push(`/users/${user.id}`)}
+                                rightIcon={<UserSubscribedIndicator userSubscribed={user.active} />}
+                                primaryText={ user.name || user.phone || user.email }
                                 secondaryText={
                                     <p>
-                                        <span style={{ float: 'left' }}>{user.phone}</span>
+                                        <span style={{ float: 'left' }}>{user.phone} </span>
                                         <span style={{ float: 'right' }}>{user.email}</span>
                                     </p>
                                 }

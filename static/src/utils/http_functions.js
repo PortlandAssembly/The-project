@@ -100,3 +100,7 @@ export function get_all_events(token) {
 export function create_event(event, message_id) {
     return axios.put('/api/event', { ...event, message_id } );
 }
+
+export function update_event(event_id, event) {
+    return axios.post(`/api/event/${event_id}`, { event } );
+}
