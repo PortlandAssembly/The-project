@@ -48,7 +48,8 @@ class User(db.Model):
             'role':  self.role,
             'email': self.email,
             'tags': [tag.tag_id for tag in self.tags],
-            'last_msg': self.last_msg
+            'last_msg': self.last_msg,
+            'active': self.active
         }
 
     def update(self, values):
@@ -73,6 +74,11 @@ class User(db.Model):
 
     def mark_last_msg(self, last_msg):
         self.__setattr__('last_msg', last_msg)
+        db.session.add(self)
+        db.session.commit()
+
+    def subscribe(self, subscribed=True):
+        self.__setattr__('active', subscribed)
         db.session.add(self)
         db.session.commit()
 
@@ -208,4 +214,14 @@ class Event(db.Model):
             'active':      self.active,
         }
 
+    def update(self, values):
+        for key, value in values.iteritems():
+            self.__setattr__(key, value)
+        
+        try:
+            db.session.add(self)
+            db.session.commit()
+            return self
+        except IntegrityError:
+            return None
 

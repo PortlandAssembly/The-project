@@ -4,6 +4,8 @@ from index import app, db
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql.expression import and_
 from .utils.auth import generate_token, requires_auth, verify_token
+from .utils.msgparse import MsgParse, parse_message
+from .utils.useractions import UserActions
 from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
 import time, json, os;
@@ -93,28 +95,62 @@ def get_messages():
 
 @app.route("/api/message", methods=['POST'])
 def incoming_message():
+    """ Respond to an incoming SMS message.
+
+        First, checks to see if the message can be recognized as one of the
+        commands in the SMS API and responds appropriately if so. If not, this
+        will try to determine whether the message is in response to another
+        message or in a current event, in order to determine how to thread the
+        message.  """
     from_number = request.values.get('From', None)
     body = request.values.get('Body', None)
     timestamp = int(time.time())
     user = User.from_number(from_number)
     event = 0
+    # The ID of the last message sent to the user is stored on the user object.
+    # If that exists and refers to an active event, we assume this message
+    # related to the same event.
     if user.last_msg:
         last_msg = Message.query.get(user.last_msg)
-        event = last_msg.event
+        if last_msg and last_msg.event:
+            """ If the event isn't active any more, consideer this a new message. """
+            e = Event.query.get(last_msg.event)
+            if e and e.active:
+                event = e.id
+            else:
+                user.last_msg = 0
+                event = 0
 
-    message = Message(
-        text=body, 
-        author=user.id, 
-        timestamp=timestamp, 
-        parent=user.last_msg, 
-        event=event
-        )
-    db.session.add(message)
-    db.session.commit()
 
-    r = MessagingResponse()
-    r.message( 'Thanks for the reply.' if user.last_msg else 'Thanks for the tip.')
-    return str(r)
+    # Parse the message for special commands (see MsgParse class)
+    msg_handler = parse_message(body)
+    if msg_handler['handled']:
+        user_actions = UserActions(
+                    user=user,
+                    event=event,
+                    timestamp=timestamp,
+                    )
+        response = msg_handler['response'] 
+        action = getattr(user_actions, msg_handler['action'], None)
+        if callable(action):
+            action()
+    else:
+        message = Message(
+            text=body, 
+            author=user.id, 
+            timestamp=timestamp, 
+            parent=user.last_msg, 
+            event=event
+            )
+        db.session.add(message)
+        db.session.commit()
+        response = 'Thanks for the reply.' if user.last_msg else 'Thanks for the tip.'
+
+    # Return a response if the message warrants one.
+    if response:
+        r = MessagingResponse()
+        r.message(response)
+        return str(r)
 
 @app.route("/api/tags", methods=['GET'])
 def get_tags():
@@ -193,6 +229,7 @@ def send_broadcast():
     filters = incoming['filters']
     audience = db.session.query(User) \
             .filter(User.phone != "") \
+            .filter(User.active) \
             .filter(and_(User.tags.contains(UserTags.query.get(tag_filter)) for tag_filter in filters)) \
             .all()
 
@@ -248,3 +285,12 @@ def create_event():
 
     return get_events()
 
+@app.route("/api/event/<int:event_id>", methods=['POST'])
+def update_event(event_id):
+    try:
+        event = db.session.query(Event).get(event_id)
+        incoming = request.get_json()
+        event = event.update(values=incoming["event"])
+        return get_events() if event else jsonify(message="Error updating event")
+    except:
+        return jsonify(message="Malformed request"), 400

@@ -1,6 +1,6 @@
 import { FETCH_EVENTS_REQUEST, UPDATE_EVENT_REQUEST, RECEIVE_EVENTS } from '../constants/index';
 import { parseJSON } from '../utils/misc';
-import { get_all_events, create_event } from '../utils/http_functions';
+import { get_all_events, create_event, update_event } from '../utils/http_functions';
 
 export function receiveEvents(data) {
     return {
@@ -51,3 +51,12 @@ export function createEvent(event, message_id) {
     }
 }
 
+export function updateEvent(event) {
+    return (dispatch) => {
+        dispatch(updateEventRequest());
+        update_event( event.id, event )
+            .then(parseJSON)
+            .then(response => dispatch(receiveEvents(response)))
+            .catch(console.log);
+    }
+}

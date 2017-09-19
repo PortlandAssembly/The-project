@@ -2,9 +2,13 @@ import React from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { Link } from 'react-router';
+
 import { List, ListItem } from 'material-ui/List';
 import Divider from 'material-ui/Divider';
+
 import * as eventActionCreators from '../actions/events';
+
+import { EventStatusIndicator } from './EventStatus';
 
 function mapStateToProps(state) {
     return {
@@ -39,6 +43,7 @@ class Events extends React.Component { // eslint-disable-line react/prefer-state
                                 primaryText={
                                     <Link to={`/events/${event.id}`}>{event.name}</Link>
                                 }
+                                rightIcon = { <EventStatusIndicator eventStatus={event.active} /> }
                             />
                         ) }
                      ) }
