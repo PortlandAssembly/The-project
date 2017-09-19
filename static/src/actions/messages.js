@@ -35,10 +35,10 @@ export function postBroadcastRequest() {
     };
 }
 
-export function fetchMessages(token) {
+export function fetchMessages() {
     return (dispatch) => {
         dispatch(fetchMessagesRequest());
-        get_new_messages(token)
+        get_new_messages()
             .then(parseJSON)
             .then(response => {
                 dispatch(receiveMessages(response));

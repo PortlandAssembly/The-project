@@ -29,10 +29,10 @@ export function updateTagRequest() {
     };
 }
 
-export function fetchTags(token) {
+export function fetchTags() {
     return (dispatch) => {
         dispatch(fetchTagsRequest());
-        get_all_tags(token)
+        get_all_tags()
             .then(parseJSON)
             .then(response => {
                 dispatch(receiveTags(response));
@@ -43,7 +43,7 @@ export function fetchTags(token) {
     };
 }
 
-export function handleCreateTag(tag, token) {
+export function handleCreateTag(tag) {
     return (dispatch) => {
         dispatch(updateTagRequest());
         create_tag(tag)
@@ -57,7 +57,7 @@ export function handleCreateTag(tag, token) {
     }
 }
 
-export function handleDeleteTag(tag, token) {
+export function handleDeleteTag(tag) {
     return (dispatch) => {
         dispatch(updateTagRequest());
         delete_tag(tag)
@@ -71,7 +71,7 @@ export function handleDeleteTag(tag, token) {
     }
 }
 
-export function handleUpdateTag(tag, token) {
+export function handleUpdateTag(tag) {
     return (dispatch) => {
         dispatch(updateTagRequest());
         update_tag(tag)
