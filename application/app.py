@@ -3,7 +3,7 @@ from .models import User, Message, UserTags, Tag, Event
 from index import app, db
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql.expression import and_
-from .utils.auth import generate_token, requires_auth, verify_token
+from .utils.auth import generate_token, requires_auth, verify_token, validate_twilio_request
 from .utils.msgparse import MsgParse, parse_message
 from .utils.useractions import UserActions
 from twilio.rest import Client
