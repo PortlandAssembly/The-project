@@ -101,7 +101,7 @@ export class Header extends Component {
                     }
                 </LeftNav>
                 <AppBar
-                  title="Ⓐ  The Project"
+                  title="Heyer Alerta"
                   onLeftIconButtonTouchTap={() => this.openNav()}
                   iconElementRight={
                       <FlatButton label="Home" onClick={() => this.dispatchNewRoute('/')} />
