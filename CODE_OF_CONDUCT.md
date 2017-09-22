@@ -3,31 +3,32 @@ Code of Conduct
 
 ## Shorter version 
 
-The Project is dedicated to providing a harassment-free experience for
+Heyer Alerta is dedicated to providing a harassment-free experience for
 everyone, regardless of gender, gender identity and expression, sexual
 orientation, disability, physical appearance, body size, age, race, or
 religion. We do not tolerate harassment of participants in any form.
 
-This code of conduct applies to all The Project spaces, both online and off,
+This code of conduct applies to all Heyer Alerta spaces, both online and off,
 including this github repository, our Signal discussion group, and any
 in-person meetings.  Anyone who violates this code of conduct
 may be sanctioned or expelled from these spaces at the discretion of the
 Community Team.
 
-Some The Project spaces may have additional rules in place, which will be made
+Some Heyer Alerta spaces may have additional rules in place, which will be made
 clearly available to participants. Participants are responsible for knowing and
 abiding by these rules.
 
 ## Longer version 
 
-The Project is dedicated to providing a harassment-free experience for
+Heyer Alerta is dedicated to providing a harassment-free experience for
 everyone. We do not tolerate harassment of participants in any form.
 
-This code of conduct applies to all The Project spaces, including this github repository, our Signal discussion group, and any
-in-person meetings. Anyone who violates this code of conduct may be sanctioned
-or expelled from these spaces at the discretion of the Community Team.
+This code of conduct applies to all Heyer Alerta spaces, including this github
+repository, our Signal discussion group, and any in-person meetings. Anyone who
+violates this code of conduct may be sanctioned or expelled from these spaces
+at the discretion of the Community Team.
 
-Some The Project spaces may have additional rules in place, which will be made
+Some Heyer Alerta spaces may have additional rules in place, which will be made
 clearly available to participants. Participants are responsible for knowing and
 abiding by these rules.
 
@@ -60,7 +61,7 @@ Harassment includes:
   abuse.
 - Publication of non-harassing private communication.
 
-The Project prioritizes marginalized people’s safety over privileged people’s
+Heyer Alerta prioritizes marginalized people’s safety over privileged people’s
 comfort. The Community Team reserves the right not to act on complaints
 regarding:
 
@@ -73,7 +74,7 @@ regarding:
 
 ### Reporting and Community Team
 
-If you are being harassed by a member of The Project, notice that someone else
+If you are being harassed by a member of Heyer Alerta, notice that someone else
 is being harassed, or have any other concerns, please contact any member of the
 Community Team at the following addreses:
 
@@ -84,14 +85,14 @@ Community Team at the following addreses:
 If the person who is harassing you is on the team, they will recuse themselves
 from handling your incident. We will respond as promptly as we can.
 
-This code of conduct applies to The Project spaces, but if you are being
-harassed by a member or contributor of The Project outside our spaces, we still
+This code of conduct applies to Heyer Alerta spaces, but if you are being
+harassed by a member or contributor of Heyer Alerta outside our spaces, we still
 want to know about it. We will take all good-faith reports of harassment by The
 Project members, especially Community Team, seriously. This includes harassment
 outside our spaces and harassment that took place at any point in time. The
-abuse team reserves the right to exclude people from The Project based on their
-past behavior, including behavior outside The Project spaces and behavior
-towards people who are not in The Project.
+abuse team reserves the right to exclude people from Heyer Alerta based on their
+past behavior, including behavior outside Heyer Alerta spaces and behavior
+towards people who are not in Heyer Alerta.
 
 In order to protect volunteers from abuse and burnout, we reserve the right to
 reject any report we believe to have been made in bad faith. Reports intended
@@ -100,7 +101,7 @@ to silence legitimate criticism may be deleted without response.
 We will respect confidentiality requests for the purpose of protecting victims
 of abuse. At our discretion, we may publicly name a person about whom we’ve
 received harassment complaints, or privately warn third parties about them, if
-we believe that doing so will increase the safety of The Project members or the
+we believe that doing so will increase the safety of Heyer Alerta members or the
 general public. We will not name harassment victims without their affirmative
 consent.
 

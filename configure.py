@@ -87,7 +87,7 @@ except Exception as e:
 print "Updating Twilio configuration with new webhook URLs:"
  
 try:
-    twilio.incoming_phone_numbers(str(number_sid)).update(friendly_name='The project',sms_url=str(sms_url),sms_method='POST')
+    twilio.incoming_phone_numbers(str(number_sid)).update(friendly_name='Heyer Alerta',sms_url=str(sms_url),sms_method='POST')
     print
     print "All Done!"
 except Exception as e:

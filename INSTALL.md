@@ -1,4 +1,4 @@
-# Installing The Project for local development
+# Installing Heyer Alerta for local development
 
 This application is based on a boilerplate application for a Flask JWT Backend
 and a React/Redux Front-End with Material UI.
