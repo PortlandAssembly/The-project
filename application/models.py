@@ -22,7 +22,7 @@ class User(db.Model):
     name     = db.Column(db.String(255))
     email    = db.Column(db.String(255), unique    = True)
     active   = db.Column(db.Boolean())
-    role     = db.Column(db.Enum("responder", "verifier", "admin"))
+    role     = db.Column(db.Enum("responder", "verifier", "admin", name='roles'))
     password = db.Column(db.String(255))
     phone    = db.Column(db.String(15))
     last_msg = db.Column(db.Integer(), ForeignKey('message.id'))
